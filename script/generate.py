@@ -1,4 +1,4 @@
-print("🚀 終極版日曆腳本啟動，正在載入工具包...")
+print("🚀 終極完全體啟動：自動清洗 + 自動比對差額 + 網頁產出...")
 import pandas as pd
 import os
 import glob
@@ -6,27 +6,59 @@ import re
 from collections import defaultdict
 
 ETF_MAPPING = {
-    "00403A": "統一升級50",
-    "00981A": "統一台股增長",
-    "00988A": "統一全球創新",
-    "00991A": "復華未來50",
-    "00992A": "群益科技"
+    "00403A": "統一升級50", "00981A": "統一台股增長", "00988A": "統一全球創新",
+    "00991A": "復華未來50", "00992A": "群益科技"
 }
 
-def robust_load(filepath):
-    try:
-        all_sheets = pd.read_excel(filepath, sheet_name=None)
-        return pd.concat(all_sheets.values(), ignore_index=True)
-    except: pass
-    try: return pd.read_csv(filepath, encoding='utf-8')
-    except: pass
-    try: return pd.read_csv(filepath, encoding='big5')
-    except: return None
+def find_header_row(df):
+    # 🌟 升級：把掃描深度拉到 50 行，對付統一的多行廢話
+    for i in range(min(50, len(df))): 
+        row_str = "".join(str(x) for x in df.iloc[i].values).lower()
+        if ('代' in row_str or 'code' in row_str) and ('股' in row_str or '權重' in row_str or 'qty' in row_str):
+            return i
+    return -1
 
-def find_col(columns, keywords):
-    for c in columns:
-        if any(k in str(c).lower() for k in keywords): return c
-    return columns[0]
+def smart_read_and_clean(filepath):
+    try:
+        if filepath.endswith('.csv'):
+            try: df_raw = pd.read_csv(filepath, encoding='utf-8', header=None)
+            except: df_raw = pd.read_csv(filepath, encoding='big5', header=None)
+            sheets = {'Sheet1': df_raw}
+        else:
+            sheets = pd.read_excel(filepath, sheet_name=None, header=None)
+
+        all_clean_data = []
+        for sheet_name, df in sheets.items():
+            header_idx = find_header_row(df)
+            if header_idx == -1: continue # 找不到就跳過該分頁
+
+            df.columns = df.iloc[header_idx].astype(str)
+            df = df.iloc[header_idx+1:].reset_index(drop=True)
+
+            col_code, col_name, col_qty = None, None, None
+            for c in df.columns:
+                c_str = str(c).lower().strip()
+                if not col_code and ('代' in c_str or 'code' in c_str): col_code = c
+                elif not col_name and ('名' in c_str or 'name' in c_str): col_name = c
+                elif not col_qty and ('股' in c_str or '張' in c_str or 'qty' in c_str): col_qty = c
+
+            if not (col_code and col_qty): continue
+
+            clean_df = df[[col_code, col_name, col_qty]].copy() if col_name else df[[col_code, col_qty]].copy()
+            clean_df.columns = ['Code', 'Name', 'Qty'] if col_name else ['Code', 'Qty']
+            if not col_name: clean_df['Name'] = ""
+
+            clean_df = clean_df.dropna(subset=['Code'])
+            clean_df['Qty'] = pd.to_numeric(clean_df['Qty'].astype(str).str.replace(',', '').str.replace('"', ''), errors='coerce')
+            clean_df = clean_df.dropna(subset=['Qty'])
+            all_clean_data.append(clean_df)
+
+        if all_clean_data:
+            return pd.concat(all_clean_data, ignore_index=True)
+        return None
+    except Exception as e:
+        print(f"❌ 讀取失敗 {os.path.basename(filepath)}: {e}")
+        return None
 
 def generate():
     os.makedirs('dist', exist_ok=True)
@@ -36,84 +68,94 @@ def generate():
         print("❌ data/ 資料夾內沒有檔案！")
         return
 
-    # 🌟 升級 1：改用「日期」做為第一層分類！
-    # 結構：date_groups[日期串][ETF代號] = [檔案路徑]
-    date_groups = defaultdict(lambda: defaultdict(list))
+    etf_history = defaultdict(dict)
+    all_dates = set()
     
     for f in all_files:
         basename = os.path.basename(f)
-        
-        # 智慧抓日期：找 8 位數數字 (如 20260527)
         date_match = re.search(r'(\d{8})', basename)
-        file_date = date_match.group(1) if date_match else "未分類日期"
+        # 🌟 升級：寬容抓取代號，992A 或 0403A 都能抓到
+        etf_match = re.search(r'([0-9]{3,6}[A-Za-z]?)', basename)
         
-        # 智慧抓 ETF 代號
-        etf_match = re.search(r'(00\d{3}[A-Za-z]?)', basename)
-        etf_code = etf_match.group(1).upper() if etf_match else "OTHER"
-        
-        date_groups[file_date][etf_code].append(f)
+        if date_match and etf_match:
+            date_str = date_match.group(1)
+            raw_code = etf_match.group(1).upper()
+            # 🌟 升級：自動將 992A 變成 00992A
+            etf_code = "00" + raw_code.lstrip('0') 
+            
+            etf_history[etf_code][date_str] = f
+            all_dates.add(date_str)
+            print(f"📥 成功讀取待命檔案: {etf_code} [{date_str}]")
 
-    # 紀錄所有成功產出的日期，用來做首頁選單
-    available_dates = sorted(list(date_groups.keys()), reverse=True)
+    sorted_dates = sorted(list(all_dates), reverse=True)
+    if len(sorted_dates) < 2:
+        print("⚠️ 警告：資料夾內至少需要『兩天』的檔案 (如 0527 加上 0528) 才能計算買賣差額喔！")
+        return
 
-    # 讀取標準網頁範本
     with open('templates/index.html', 'r', encoding='utf-8') as f:
         html_template = f.read()
 
-    # 🌟 升級 2：幫每一天產出一個獨立的 .html
-    for current_date in available_dates:
-        print(f"📅 正在編織日曆：處理 {current_date} 的數據...")
+    for i in range(len(sorted_dates) - 1):
+        target_date = sorted_dates[i]
+        previous_date = sorted_dates[i+1]
+        print(f"\n🧮 正在比對 【{target_date}】 與 【{previous_date}】...")
+        
         etf_blocks_html = ""
         
-        # 依序處理這一天裡面的每一檔 ETF
-        for prefix, files in sorted(date_groups[current_date].items()):
-            valid_dfs = [robust_load(f) for f in files if robust_load(f) is not None]
-            if not valid_dfs: continue
+        for etf_code, dates_files in etf_history.items():
+            if target_date not in dates_files or previous_date not in dates_files:
+                print(f"   ⏭️ 略過 {etf_code}：因為缺乏 {target_date} 或 {previous_date} 兩天的完整檔案。")
+                continue 
                 
-            master_df = pd.concat(valid_dfs, ignore_index=True)
-            master_df.columns = [str(c).strip() for c in master_df.columns]
+            df_today = smart_read_and_clean(dates_files[target_date])
+            df_yest = smart_read_and_clean(dates_files[previous_date])
+            
+            if df_today is None or df_yest is None: 
+                print(f"   ❌ 清洗失敗 {etf_code}：無法解析檔案內容。")
+                continue
 
-            col_code = find_col(master_df.columns, ['代', 'code'])
-            col_name = find_col(master_df.columns, ['名', 'name'])
-            col_qty  = find_col(master_df.columns, ['股', '張', 'qty'])
+            df_merged = pd.merge(df_today, df_yest, on='Code', how='outer', suffixes=('_T', '_Y'))
+            df_merged['Qty_T'] = df_merged['Qty_T'].fillna(0)
+            df_merged['Qty_Y'] = df_merged['Qty_Y'].fillna(0)
+            df_merged['Diff'] = df_merged['Qty_T'] - df_merged['Qty_Y']
+            
+            df_merged['Name'] = df_merged['Name_T'].fillna(df_merged['Name_Y']).fillna("未知名稱")
+            df_diff = df_merged[df_merged['Diff'] != 0].copy()
+            
+            if df_diff.empty: 
+                print(f"   ⚖️ 無變動 {etf_code}：兩天持股完全一致。")
+                continue
 
             buy_html, sell_html = "", ""
             buy_count, sell_count = 0, 0
 
-            for _, row in master_df.iterrows():
-                if pd.isna(row[col_code]) or pd.isna(row[col_qty]): continue
-                code_str = str(row[col_code]).strip()
-                if '元' in code_str or '總數' in code_str or '交易' in code_str or '現金' in code_str or code_str == 'nan': continue
-                    
-                try:
-                    raw_qty = float(str(row[col_qty]).replace(',', '').replace('"', ''))
-                    is_buy = raw_qty > 0
-                    abs_qty = abs(int(raw_qty))
-                    qty_val = f"+{abs_qty:,}" if is_buy else f"-{abs_qty:,}"
-                except: continue 
+            for _, row in df_diff.iterrows():
+                diff_val = int(row['Diff'])
+                is_buy = diff_val > 0
+                abs_qty = abs(diff_val)
+                qty_str = f"+{abs_qty:,}" if is_buy else f"-{abs_qty:,}"
+                code_str = str(row['Code']).replace('.0', '')
+                
+                if '元' in code_str or '現金' in code_str or code_str == 'nan': continue
 
                 item_html = f'''
                 <li class="list-item">
-                    <div class="item-left"><span class="col-id">{row[col_code]}</span><div class="name-wrapper"><span class="col-name">{row[col_name]}</span></div></div>
-                    <span class="col-qty {'val-buy' if is_buy else 'val-sell'}">{qty_val}</span>
+                    <div class="item-left"><span class="col-id">{code_str}</span><div class="name-wrapper"><span class="col-name">{row['Name']}</span></div></div>
+                    <span class="col-qty {'val-buy' if is_buy else 'val-sell'}">{qty_str}</span>
                 </li>
                 '''
                 if is_buy:
-                    buy_html += item_html
-                    buy_count += 1
+                    buy_html += item_html; buy_count += 1
                 else:
-                    sell_html += item_html
-                    sell_count += 1
+                    sell_html += item_html; sell_count += 1
 
             if not buy_html: buy_html = '<div class="empty-row">- 今日無買進動作 -</div>'
             if not sell_html: sell_html = '<div class="empty-row">- 今日無賣出動作 -</div>'
 
-            etf_name = ETF_MAPPING.get(prefix, "其他投信成分股")
-
-            # 串接這一天裡的所有 ETF 區塊
+            etf_name = ETF_MAPPING.get(etf_code, "其他投信成分股")
             etf_blocks_html += f'''
             <div class="etf-section">
-                <div class="etf-title"><span>{prefix}</span> {etf_name}</div>
+                <div class="etf-title"><span>{etf_code}</span> {etf_name}</div>
                 <div class="tables-grid">
                     <div class="table-box">
                         <div class="box-header header-buy"><div>買進成分股</div><div>共 {buy_count} 檔</div></div>
@@ -128,36 +170,31 @@ def generate():
                 </div>
             </div>
             '''
+            print(f"   ✅ 成功計算 {etf_code}：買進 {buy_count} 檔，賣出 {sell_count} 檔。")
 
-        # 🌟 升級 3：打造上方日期切換日曆選單的 HTML
+        if etf_blocks_html == "":
+            etf_blocks_html = '<div style="color:#8898aa; padding: 30px; text-align:center; font-style:italic;">今日各檔 ETF 無成分股變動，或資料不足。</div>'
+
         menu_html = '<div class="date-menu">'
-        for d in available_dates:
-            # 格式化日期顯示，例如 20260527 變成 05/27
-            display_date = f"{d[4:6]}/{d[6:8]}" if len(d) == 8 else d
-            active_class = "active" if d == current_date else ""
-            # 點擊按鈕直接跳轉到該日期的網頁
+        for d in sorted_dates[:-1]: 
+            display_date = f"{d[4:6]}/{d[6:8]}"
+            active_class = "active" if d == target_date else ""
             menu_html += f'<a href="{d}.html" class="menu-btn {active_class}">{display_date}</a>'
         menu_html += '</div>'
 
-        # 將日曆選單與當天內容結合
-        full_page_content = menu_html + etf_blocks_html
-
-        # 替換日期徽章與主內容
-        page_final = html_template.replace('<div class="date-badge">資料更新完畢</div>', f'<div class="date-badge">更新日期：{current_date[:4]}/{current_date[4:6]}/{current_date[6:8]}</div>')
-        page_final = page_final.replace('<div id="content"></div>', full_page_content)
+        full_page = menu_html + etf_blocks_html
+        page_final = html_template.replace('<div class="date-badge">資料更新完畢</div>', f'<div class="date-badge">更新日期：{target_date[:4]}/{target_date[4:6]}/{target_date[6:8]}</div>')
+        page_final = page_final.replace('<div id="content"></div>', full_page)
         
-        # 寫入每日獨立檔案，例如 dist/20260527.html
-        with open(f'dist/{current_date}.html', 'w', encoding='utf-8') as f:
+        with open(f'dist/{target_date}.html', 'w', encoding='utf-8') as f:
             f.write(page_final)
 
-    # 🌟 升級 4：永遠複製最新一天的網頁，作為總首頁 index.html
-    if available_dates:
-        latest_date = available_dates[0]
+    latest_date = sorted_dates[0]
+    if os.path.exists(f'dist/{latest_date}.html'):
         with open(f'dist/{latest_date}.html', 'r', encoding='utf-8') as sf:
-            latest_content = sf.read()
-        with open('dist/index.html', 'w', encoding='utf-8') as df:
-            df.write(latest_content)
-        print(f"✨ 總首頁 index.html 已自動同步至最新日期 ({latest_date})")
+            with open('dist/index.html', 'w', encoding='utf-8') as df:
+                df.write(sf.read())
+        print(f"\n✨ 完美收工！首頁已更新為 {latest_date} 的差額比對報表！")
 
 if __name__ == "__main__":
     generate()
