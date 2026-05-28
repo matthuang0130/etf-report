@@ -2,16 +2,60 @@
 <html lang="zh-TW">
 <head>
     <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>投信成分股追蹤目錄</title>
     <style>
-        body { background-color: #060a14; color: #fff; font-family: sans-serif; display: flex; justify-content: center; padding: 40px; }
-        .container { width: 100%; max-width: 500px; }
-        h1 { color: #00aaff; text-align: center; margin-bottom: 30px; }
-        .report-list { list-style: none; }
-        .report-item { background: #111827; margin: 10px 0; padding: 15px; border-radius: 8px; border: 1px solid #1f2937; transition: 0.3s; }
-        .report-item:hover { border-color: #00aaff; background: #1f2937; }
-        a { color: #fff; text-decoration: none; font-size: 18px; display: block; }
-        .date { color: #8898aa; font-size: 14px; margin-top: 5px; }
+        body { 
+            background-color: #060a14; 
+            color: #fff; 
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; 
+            display: flex; 
+            justify-content: center; 
+            /* 🌟 關鍵 2：手機版把 padding 縮減為 16px，給內容更多伸展空間，不擠壓 */
+            padding: 24px 16px; 
+            margin: 0;
+        }
+        .container { 
+            width: 100%; 
+            max-width: 500px; 
+        }
+        h1 { 
+            color: #00aaff; 
+            text-align: center; 
+            margin-bottom: 24px; 
+            font-size: 1.6rem; /* 使用自適應字體大小 */
+        }
+        .report-list { 
+            list-style: none; 
+            padding: 0; /* 清除預設縮排 */
+            margin: 0;
+        }
+        .report-item { 
+            background: #111827; 
+            margin: 12px 0; 
+            padding: 16px; 
+            border-radius: 8px; 
+            border: 1px solid #1f2937; 
+            transition: 0.3s; 
+            /* 🌟 關鍵 3：增加點擊範圍防呆，方便手機手指頭點擊 */
+            cursor: pointer;
+        }
+        .report-item:hover { 
+            border-color: #00aaff; 
+            background: #1f2937; 
+        }
+        a { 
+            color: #fff; 
+            text-decoration: none; 
+            font-size: 18px; 
+            display: block; 
+            font-weight: 500;
+        }
+        .date { 
+            color: #8898aa; 
+            font-size: 14px; 
+            margin-top: 6px; 
+        }
     </style>
 </head>
 <body>
