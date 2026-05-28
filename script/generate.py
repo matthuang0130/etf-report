@@ -19,12 +19,17 @@ def find_header_row(df):
     return -1
 
 def smart_read_and_clean(filepath):
+    # 🌟 絕對防禦：如果是 Excel 產生的隱藏鎖定檔，直接無視，不要去讀它
+    if os.path.basename(filepath).startswith('~$'):
+        return None
+
     try:
         if filepath.endswith('.csv'):
             try: df_raw = pd.read_csv(filepath, encoding='utf-8', header=None)
             except: df_raw = pd.read_csv(filepath, encoding='big5', header=None)
             sheets = {'Sheet1': df_raw}
         else:
+            # 使用 sheet_name=None 確保能讀取到所有分頁 (如 992A)
             sheets = pd.read_excel(filepath, sheet_name=None, header=None)
 
         all_clean_data = []
@@ -38,9 +43,13 @@ def smart_read_and_clean(filepath):
             col_code, col_name, col_qty = None, None, None
             for c in df.columns:
                 c_str = str(c).lower().strip()
-                if not col_code and ('代' in c_str or 'code' in c_str): col_code = c
-                elif not col_name and ('名' in c_str or 'name' in c_str): col_name = c
-                elif not col_qty and ('股' in c_str or '張' in c_str or 'qty' in c_str): col_qty = c
+                if not col_code and ('代' in c_str or 'code' in c_str): 
+                    col_code = c
+                elif not col_name and ('名' in c_str or 'name' in c_str): 
+                    col_name = c
+                # 🌟 破案關鍵：找數量時，絕對避開「權重」與「%」
+                elif not col_qty and ('股' in c_str or '張' in c_str or 'qty' in c_str) and '權重' not in c_str and '%' not in c_str: 
+                    col_qty = c
 
             if not (col_code and col_qty): continue
 
@@ -54,7 +63,9 @@ def smart_read_and_clean(filepath):
             all_clean_data.append(clean_df)
 
         if all_clean_data:
-            return pd.concat(all_clean_data, ignore_index=True)
+            # 確保所有分頁數據正確加總，並且把 Name 綁在一起不遺失
+            combined = pd.concat(all_clean_data, ignore_index=True)
+            return combined.groupby(['Code', 'Name'], as_index=False)['Qty'].sum()
         return None
     except Exception as e:
         print(f"❌ 讀取失敗 {os.path.basename(filepath)}: {e}")
