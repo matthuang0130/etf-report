@@ -1,0 +1,549 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>投信成分股異動分析</title>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;700;900&display=swap" rel="stylesheet">
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body { background-color: #000; font-family: 'Noto Sans TC', sans-serif; display: flex; justify-content: center; padding: 0; margin: 0; }
+        
+        .infographic { width: 100%; max-width: 720px; background-color: #060a14; border-left: 2px solid #1a2c4e; border-right: 2px solid #1a2c4e; border-bottom: 2px solid #1a2c4e; overflow: hidden; }
+        
+        /* 總標題區 */
+        .main-header { background: linear-gradient(180deg, #0f1c35 0%, #060a14 100%); text-align: center; padding: 14px 10px 10px; border-bottom: 2px solid #1a2c4e; border-top: 2px solid #1a2c4e; position: relative; }
+        .main-header::after { content: ''; position: absolute; bottom: -2px; left: 50%; transform: translateX(-50%); width: 250px; height: 2px; background: #00aaff; box-shadow: 0 0 10px #00aaff; }
+        .main-title { color: #fff; font-size: 22px; font-weight: 900; letter-spacing: 2px; text-shadow: 0 0 10px rgba(0, 170, 255, 0.5); margin-bottom: 4px; }
+        @media (min-width: 600px) { .main-title { font-size: 28px; } }
+        .date-badge { display: inline-block; background: rgba(0, 170, 255, 0.15); color: #00aaff; padding: 2px 14px; border-radius: 12px; font-size: 13px; font-weight: 700; border: 1px solid rgba(0, 170, 255, 0.3); letter-spacing: 1px; }
+        
+        /* 單檔 ETF 區塊 */
+        .etf-section { padding: 14px; border-bottom: 2px solid #1a2c4e; }
+        .etf-section:last-child { border-bottom: none; }
+        .etf-title { color: #e0e6ed; font-size: 17px; font-weight: 900; margin-bottom: 10px; display: flex; align-items: center; gap: 8px; }
+        .etf-title span { color: #00aaff; background: rgba(0, 170, 255, 0.1); padding: 1px 6px; border-radius: 4px; border: 1px solid #00aaff; font-size: 15px; }
+        
+        /* 網格排版 */
+        .tables-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 8px; }
+        @media (max-width: 600px) { .tables-grid { grid-template-columns: 1fr; gap: 16px; } }
+        
+        .table-box { background: #0d1424; border-radius: 6px; overflow: hidden; border: 1px solid #1e2c45; }
+        .box-header { display: flex; justify-content: space-between; padding: 6px 12px; font-size: 13px; font-weight: 700; }
+        
+        /* 🌟 核心顏色配置：框線與標題 */
+        .header-buy { background: rgba(239, 68, 68, 0.15); color: #f87171; border-bottom: 2px solid #ef4444; }
+        .header-sell { background: rgba(34, 197, 94, 0.15); color: #4ade80; border-bottom: 2px solid #22c55e; }
+        
+        .data-list { list-style: none; padding: 0; margin: 0; }
+        .list-header { display: flex; justify-content: space-between; padding: 6px 12px; font-size: 12px; color: #8898aa; background: rgba(255,255,255,0.02); border-bottom: 1px solid rgba(255,255,255,0.05); }
+        .list-header-left { display: flex; gap: 16px; }
+        
+        .list-item { display: flex; justify-content: space-between; align-items: center; padding: 0 12px; height: 32px; border-bottom: 1px solid rgba(255,255,255,0.03); width: 100%; }
+        .item-left { display: flex; align-items: center; gap: 12px; width: 180px; }
+        .col-id { color: #6486a3; font-family: monospace; font-size: 13px; width: 48px; flex-shrink: 0; }
+        .name-wrapper { position: relative; display: inline-block; max-width: 110px; }
+        .col-name { color: #fff; font-weight: 700; font-size: 14px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; display: block; }
+        .col-qty { text-align: right; font-family: monospace; font-weight: 700; font-size: 14px; white-space: nowrap; flex-grow: 1; }
+        
+        /* 🌟 核心顏色配置：買賣數字 */
+        .val-buy { color: #f87171 !important; }
+        .val-sell { color: #4ade80 !important; }
+        
+        .empty-row { color: #334155; font-style: italic; font-size: 13px; padding: 16px; text-align: center; }
+    </style>
+</head>
+<body>
+
+    <div class="infographic">
+        <div class="main-header">
+            <div class="main-title">投信成分股異動分析</div>
+            <div class="date-badge">資料更新完畢</div>
+        </div>
+        
+        
+        <div class="etf-section">
+            <div class="etf-title"><span>00403A</span> 統一升級50</div>
+            
+            <div class="tables-grid">
+                <div class="table-box">
+                    <div class="box-header header-buy">
+                        <div>買進成分股</div><div>共 14 檔</div>
+                    </div>
+                    <div class="list-header">
+                        <div class="list-header-left">
+                            <span style="width: 48px; display:inline-block;">代號</span><span>名稱</span>
+                        </div>
+                        <span>數量</span>
+                    </div>
+                    <ul class="data-list">
+                        
+            <li class="list-item">
+                <div class="item-left">
+                    <span class="col-id">2344</span>
+                    <div class="name-wrapper"><span class="col-name">華邦電</span></div>
+                </div>
+                <span class="col-qty val-buy">+1,260</span>
+            </li>
+            
+            <li class="list-item">
+                <div class="item-left">
+                    <span class="col-id">6488</span>
+                    <div class="name-wrapper"><span class="col-name">環球晶</span></div>
+                </div>
+                <span class="col-qty val-buy">+1,000</span>
+            </li>
+            
+            <li class="list-item">
+                <div class="item-left">
+                    <span class="col-id">3189</span>
+                    <div class="name-wrapper"><span class="col-name">景碩</span></div>
+                </div>
+                <span class="col-qty val-buy">+580</span>
+            </li>
+            
+            <li class="list-item">
+                <div class="item-left">
+                    <span class="col-id">4979</span>
+                    <div class="name-wrapper"><span class="col-name">華星光</span></div>
+                </div>
+                <span class="col-qty val-buy">+340</span>
+            </li>
+            
+            <li class="list-item">
+                <div class="item-left">
+                    <span class="col-id">3653</span>
+                    <div class="name-wrapper"><span class="col-name">健策</span></div>
+                </div>
+                <span class="col-qty val-buy">+240</span>
+            </li>
+            
+            <li class="list-item">
+                <div class="item-left">
+                    <span class="col-id">2454</span>
+                    <div class="name-wrapper"><span class="col-name">聯發科</span></div>
+                </div>
+                <span class="col-qty val-buy">+208</span>
+            </li>
+            
+            <li class="list-item">
+                <div class="item-left">
+                    <span class="col-id">2308</span>
+                    <div class="name-wrapper"><span class="col-name">台達電</span></div>
+                </div>
+                <span class="col-qty val-buy">+187</span>
+            </li>
+            
+            <li class="list-item">
+                <div class="item-left">
+                    <span class="col-id">6196</span>
+                    <div class="name-wrapper"><span class="col-name">帆宣</span></div>
+                </div>
+                <span class="col-qty val-buy">+100</span>
+            </li>
+            
+            <li class="list-item">
+                <div class="item-left">
+                    <span class="col-id">2368</span>
+                    <div class="name-wrapper"><span class="col-name">金像電</span></div>
+                </div>
+                <span class="col-qty val-buy">+50</span>
+            </li>
+            
+            <li class="list-item">
+                <div class="item-left">
+                    <span class="col-id">6274</span>
+                    <div class="name-wrapper"><span class="col-name">台燿</span></div>
+                </div>
+                <span class="col-qty val-buy">+50</span>
+            </li>
+            
+            <li class="list-item">
+                <div class="item-left">
+                    <span class="col-id">2360</span>
+                    <div class="name-wrapper"><span class="col-name">致茂</span></div>
+                </div>
+                <span class="col-qty val-buy">+45</span>
+            </li>
+            
+            <li class="list-item">
+                <div class="item-left">
+                    <span class="col-id">3081</span>
+                    <div class="name-wrapper"><span class="col-name">聯亞</span></div>
+                </div>
+                <span class="col-qty val-buy">+30</span>
+            </li>
+            
+            <li class="list-item">
+                <div class="item-left">
+                    <span class="col-id">3443</span>
+                    <div class="name-wrapper"><span class="col-name">創意</span></div>
+                </div>
+                <span class="col-qty val-buy">+30</span>
+            </li>
+            
+            <li class="list-item">
+                <div class="item-left">
+                    <span class="col-id">6223</span>
+                    <div class="name-wrapper"><span class="col-name">旺矽</span></div>
+                </div>
+                <span class="col-qty val-buy">+30</span>
+            </li>
+            
+                    </ul>
+                </div>
+
+                <div class="table-box">
+                    <div class="box-header header-sell">
+                        <div>賣出成分股</div><div>共 2 檔</div>
+                    </div>
+                    <div class="list-header">
+                        <div class="list-header-left">
+                            <span style="width: 48px; display:inline-block;">代號</span><span>名稱</span>
+                        </div>
+                        <span>數量</span>
+                    </div>
+                    <ul class="data-list">
+                        
+            <li class="list-item">
+                <div class="item-left">
+                    <span class="col-id">2313</span>
+                    <div class="name-wrapper"><span class="col-name">華通</span></div>
+                </div>
+                <span class="col-qty val-sell">-1,300</span>
+            </li>
+            
+            <li class="list-item">
+                <div class="item-left">
+                    <span class="col-id">3211</span>
+                    <div class="name-wrapper"><span class="col-name">順達</span></div>
+                </div>
+                <span class="col-qty val-sell">-1</span>
+            </li>
+            
+                    </ul>
+                </div>
+            </div>
+        </div>
+        
+        <div class="etf-section">
+            <div class="etf-title"><span>00981A</span> 統一台股增長</div>
+            
+            <div class="tables-grid">
+                <div class="table-box">
+                    <div class="box-header header-buy">
+                        <div>買進成分股</div><div>共 7 檔</div>
+                    </div>
+                    <div class="list-header">
+                        <div class="list-header-left">
+                            <span style="width: 48px; display:inline-block;">代號</span><span>名稱</span>
+                        </div>
+                        <span>數量</span>
+                    </div>
+                    <ul class="data-list">
+                        
+            <li class="list-item">
+                <div class="item-left">
+                    <span class="col-id">2303</span>
+                    <div class="name-wrapper"><span class="col-name">聯電</span></div>
+                </div>
+                <span class="col-qty val-buy">+5,000</span>
+            </li>
+            
+            <li class="list-item">
+                <div class="item-left">
+                    <span class="col-id">3711</span>
+                    <div class="name-wrapper"><span class="col-name">日月光投控</span></div>
+                </div>
+                <span class="col-qty val-buy">+1,000</span>
+            </li>
+            
+            <li class="list-item">
+                <div class="item-left">
+                    <span class="col-id">3037</span>
+                    <div class="name-wrapper"><span class="col-name">欣興</span></div>
+                </div>
+                <span class="col-qty val-buy">+390</span>
+            </li>
+            
+            <li class="list-item">
+                <div class="item-left">
+                    <span class="col-id">8150</span>
+                    <div class="name-wrapper"><span class="col-name">南茂</span></div>
+                </div>
+                <span class="col-qty val-buy">+301</span>
+            </li>
+            
+            <li class="list-item">
+                <div class="item-left">
+                    <span class="col-id">6187</span>
+                    <div class="name-wrapper"><span class="col-name">萬潤</span></div>
+                </div>
+                <span class="col-qty val-buy">+110</span>
+            </li>
+            
+            <li class="list-item">
+                <div class="item-left">
+                    <span class="col-id">2368</span>
+                    <div class="name-wrapper"><span class="col-name">金像電</span></div>
+                </div>
+                <span class="col-qty val-buy">+100</span>
+            </li>
+            
+            <li class="list-item">
+                <div class="item-left">
+                    <span class="col-id">3533</span>
+                    <div class="name-wrapper"><span class="col-name">嘉澤</span></div>
+                </div>
+                <span class="col-qty val-buy">+80</span>
+            </li>
+            
+                    </ul>
+                </div>
+
+                <div class="table-box">
+                    <div class="box-header header-sell">
+                        <div>賣出成分股</div><div>共 3 檔</div>
+                    </div>
+                    <div class="list-header">
+                        <div class="list-header-left">
+                            <span style="width: 48px; display:inline-block;">代號</span><span>名稱</span>
+                        </div>
+                        <span>數量</span>
+                    </div>
+                    <ul class="data-list">
+                        
+            <li class="list-item">
+                <div class="item-left">
+                    <span class="col-id">2449</span>
+                    <div class="name-wrapper"><span class="col-name">京元電子</span></div>
+                </div>
+                <span class="col-qty val-sell">-4,651</span>
+            </li>
+            
+            <li class="list-item">
+                <div class="item-left">
+                    <span class="col-id">2481</span>
+                    <div class="name-wrapper"><span class="col-name">強茂</span></div>
+                </div>
+                <span class="col-qty val-sell">-2,051</span>
+            </li>
+            
+            <li class="list-item">
+                <div class="item-left">
+                    <span class="col-id">2313</span>
+                    <div class="name-wrapper"><span class="col-name">華通</span></div>
+                </div>
+                <span class="col-qty val-sell">-1,320</span>
+            </li>
+            
+                    </ul>
+                </div>
+            </div>
+        </div>
+        
+        <div class="etf-section">
+            <div class="etf-title"><span>00991A</span> 復華未來50</div>
+            
+            <div class="tables-grid">
+                <div class="table-box">
+                    <div class="box-header header-buy">
+                        <div>買進成分股</div><div>共 3 檔</div>
+                    </div>
+                    <div class="list-header">
+                        <div class="list-header-left">
+                            <span style="width: 48px; display:inline-block;">代號</span><span>名稱</span>
+                        </div>
+                        <span>數量</span>
+                    </div>
+                    <ul class="data-list">
+                        
+            <li class="list-item">
+                <div class="item-left">
+                    <span class="col-id">3042</span>
+                    <div class="name-wrapper"><span class="col-name">台灣晶技</span></div>
+                </div>
+                <span class="col-qty val-buy">+1,000</span>
+            </li>
+            
+            <li class="list-item">
+                <div class="item-left">
+                    <span class="col-id">6669</span>
+                    <div class="name-wrapper"><span class="col-name">緯穎科技</span></div>
+                </div>
+                <span class="col-qty val-buy">+30</span>
+            </li>
+            
+            <li class="list-item">
+                <div class="item-left">
+                    <span class="col-id">3017</span>
+                    <div class="name-wrapper"><span class="col-name">奇鋐科技</span></div>
+                </div>
+                <span class="col-qty val-buy">+20</span>
+            </li>
+            
+                    </ul>
+                </div>
+
+                <div class="table-box">
+                    <div class="box-header header-sell">
+                        <div>賣出成分股</div><div>共 1 檔</div>
+                    </div>
+                    <div class="list-header">
+                        <div class="list-header-left">
+                            <span style="width: 48px; display:inline-block;">代號</span><span>名稱</span>
+                        </div>
+                        <span>數量</span>
+                    </div>
+                    <ul class="data-list">
+                        
+            <li class="list-item">
+                <div class="item-left">
+                    <span class="col-id">2368</span>
+                    <div class="name-wrapper"><span class="col-name">金像電子</span></div>
+                </div>
+                <span class="col-qty val-sell">-120</span>
+            </li>
+            
+                    </ul>
+                </div>
+            </div>
+        </div>
+        
+        <div class="etf-section">
+            <div class="etf-title"><span>00992A</span> 群益科技</div>
+            
+            <div class="tables-grid">
+                <div class="table-box">
+                    <div class="box-header header-buy">
+                        <div>買進成分股</div><div>共 0 檔</div>
+                    </div>
+                    <div class="list-header">
+                        <div class="list-header-left">
+                            <span style="width: 48px; display:inline-block;">代號</span><span>名稱</span>
+                        </div>
+                        <span>數量</span>
+                    </div>
+                    <ul class="data-list">
+                        <div class="empty-row">- 今日無資料 -</div>
+                    </ul>
+                </div>
+
+                <div class="table-box">
+                    <div class="box-header header-sell">
+                        <div>賣出成分股</div><div>共 12 檔</div>
+                    </div>
+                    <div class="list-header">
+                        <div class="list-header-left">
+                            <span style="width: 48px; display:inline-block;">代號</span><span>名稱</span>
+                        </div>
+                        <span>數量</span>
+                    </div>
+                    <ul class="data-list">
+                        
+            <li class="list-item">
+                <div class="item-left">
+                    <span class="col-id">3036</span>
+                    <div class="name-wrapper"><span class="col-name">文曄</span></div>
+                </div>
+                <span class="col-qty val-sell">-1,177</span>
+            </li>
+            
+            <li class="list-item">
+                <div class="item-left">
+                    <span class="col-id">3163</span>
+                    <div class="name-wrapper"><span class="col-name">波若威</span></div>
+                </div>
+                <span class="col-qty val-sell">-604</span>
+            </li>
+            
+            <li class="list-item">
+                <div class="item-left">
+                    <span class="col-id">2455</span>
+                    <div class="name-wrapper"><span class="col-name">全新</span></div>
+                </div>
+                <span class="col-qty val-sell">-200</span>
+            </li>
+            
+            <li class="list-item">
+                <div class="item-left">
+                    <span class="col-id">3533</span>
+                    <div class="name-wrapper"><span class="col-name">嘉澤</span></div>
+                </div>
+                <span class="col-qty val-sell">-100</span>
+            </li>
+            
+            <li class="list-item">
+                <div class="item-left">
+                    <span class="col-id">3661</span>
+                    <div class="name-wrapper"><span class="col-name">世芯-KY</span></div>
+                </div>
+                <span class="col-qty val-sell">-100</span>
+            </li>
+            
+            <li class="list-item">
+                <div class="item-left">
+                    <span class="col-id">6510</span>
+                    <div class="name-wrapper"><span class="col-name">精測</span></div>
+                </div>
+                <span class="col-qty val-sell">-100</span>
+            </li>
+            
+            <li class="list-item">
+                <div class="item-left">
+                    <span class="col-id">6669</span>
+                    <div class="name-wrapper"><span class="col-name">緯穎</span></div>
+                </div>
+                <span class="col-qty val-sell">-65</span>
+            </li>
+            
+            <li class="list-item">
+                <div class="item-left">
+                    <span class="col-id">7769</span>
+                    <div class="name-wrapper"><span class="col-name">鴻勁</span></div>
+                </div>
+                <span class="col-qty val-sell">-34</span>
+            </li>
+            
+            <li class="list-item">
+                <div class="item-left">
+                    <span class="col-id">8996</span>
+                    <div class="name-wrapper"><span class="col-name">高力</span></div>
+                </div>
+                <span class="col-qty val-sell">-15</span>
+            </li>
+            
+            <li class="list-item">
+                <div class="item-left">
+                    <span class="col-id">6442</span>
+                    <div class="name-wrapper"><span class="col-name">光聖</span></div>
+                </div>
+                <span class="col-qty val-sell">-8</span>
+            </li>
+            
+            <li class="list-item">
+                <div class="item-left">
+                    <span class="col-id">7751</span>
+                    <div class="name-wrapper"><span class="col-name">竑騰</span></div>
+                </div>
+                <span class="col-qty val-sell">-3</span>
+            </li>
+            
+            <li class="list-item">
+                <div class="item-left">
+                    <span class="col-id">6531</span>
+                    <div class="name-wrapper"><span class="col-name">愛普*</span></div>
+                </div>
+                <span class="col-qty val-sell">-2</span>
+            </li>
+            
+                    </ul>
+                </div>
+            </div>
+        </div>
+        
+        
+    </div>
+
+</body>
+</html>
