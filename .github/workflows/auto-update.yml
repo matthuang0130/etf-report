@@ -1,18 +1,20 @@
-name: 自動更新 ETF 報表
+name: 自動爬蟲與更新 ETF 報表
 
-# 告訴機器人：只要有人把檔案上傳到 data/ 資料夾，就立刻開工
 on:
   push:
     paths:
       - 'data/**'
+  # 🌟 自動排程 (Cron Job)
+  # 每天 11:30 UTC (台灣時間晚上 7:30) 執行，1-5 代表週一到週五
+  schedule:
+    - cron: '30 11 * * 1-5'
 
-# 給予機器人修改並上傳檔案的權限
 permissions:
   contents: write
 
 jobs:
   build:
-    runs-on: ubuntu-latest # 使用最新的 Linux 雲端電腦
+    runs-on: ubuntu-latest # GitHub 的 Linux 雲端電腦，內建已安裝 Google Chrome！
 
     steps:
       - name: 1. 下載您的程式碼
@@ -23,18 +25,20 @@ jobs:
         with:
           python-version: '3.10'
 
-      - name: 3. 安裝必備套件 (pandas, openpyxl)
+      - name: 3. 安裝必備套件 (包含爬蟲所需的 selenium 與 requests)
         run: |
           python -m pip install --upgrade pip
-          pip install pandas openpyxl
+          pip install pandas openpyxl requests selenium webdriver-manager
 
-      - name: 4. 執行自動清洗與產出報表
+      - name: 4. 🤖 執行自動爬蟲抓取最新檔案
+        run: python etf_downloader.py
+
+      - name: 5. 🧮 執行自動清洗與產出報表
         run: python script/generate.py
 
-      - name: 5. 將產出的 HTML 存檔並推回 GitHub
+      - name: 6. 💾 將新檔案與報表存檔並推回 GitHub
         run: |
           git config --local user.email "github-actions[bot]@users.noreply.github.com"
           git config --local user.name "github-actions[bot]"
-          git add dist/
-          # 檢查是否有變更，有變更才進行 commit 與 push
-          git diff --quiet && git diff --staged --quiet || (git commit -m "🤖 機器人自動更新報表" && git push)
+          git add data/ dist/ templates/ index.html
+          git diff --quiet && git diff --staged --quiet || (git commit -m "🤖 機器人自動抓檔與更新報表" && git push)
