@@ -8,13 +8,15 @@ on:
   # 每天 11:30 UTC (台灣時間晚上 7:30) 執行，1-5 代表週一到週五
   schedule:
     - cron: '30 11 * * 1-5'
+  # 🌟 加入這行！允許在 GitHub 網頁上手動點擊執行
+  workflow_dispatch:
 
 permissions:
   contents: write
 
 jobs:
   build:
-    runs-on: ubuntu-latest # GitHub 的 Linux 雲端電腦，內建已安裝 Google Chrome！
+    runs-on: ubuntu-latest # GitHub 的 Linux 雲端電腦
 
     steps:
       - name: 1. 下載您的程式碼
