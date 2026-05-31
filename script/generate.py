@@ -115,14 +115,14 @@ def generate():
         
         for etf_code, dates_files in etf_history.items():
             if target_date not in dates_files or previous_date not in dates_files:
-                print(f"   ⏭️ 略過 {etf_code}：因為缺乏 {target_date} 或 {previous_date} 兩天的完整檔案。")
+                print(f"    ⏭️ 略過 {etf_code}：因為缺乏 {target_date} 或 {previous_date} 兩天的完整檔案。")
                 continue 
                 
             df_today = smart_read_and_clean(dates_files[target_date])
             df_yest = smart_read_and_clean(dates_files[previous_date])
             
             if df_today is None or df_yest is None: 
-                print(f"   ❌ 清洗失敗 {etf_code}：無法解析檔案內容。")
+                print(f"    ❌ 清洗失敗 {etf_code}：無法解析檔案內容。")
                 continue
 
             df_merged = pd.merge(df_today, df_yest, on='Code', how='outer', suffixes=('_T', '_Y'))
@@ -134,7 +134,7 @@ def generate():
             df_diff = df_merged[df_merged['Diff'] != 0].copy()
             
             if df_diff.empty: 
-                print(f"   ⚖️ 無變動 {etf_code}：兩天持股完全一致。")
+                print(f"    ⚖️ 無變動 {etf_code}：兩天持股完全一致。")
                 continue
 
             buy_html, sell_html = "", ""
@@ -149,9 +149,17 @@ def generate():
                 
                 if '元' in code_str or '現金' in code_str or code_str == 'nan': continue
 
+                # 🌟 判斷是否為新進標的：昨天(Qty_Y)是 0 或 NaN，但今天(Qty_T)大於 0
+                is_new_entry = False
+                if is_buy and (pd.isna(row['Qty_Y']) or row['Qty_Y'] == 0):
+                    is_new_entry = True
+
+                # 🌟 如果是新進，在名字前面加上紅色的標籤
+                name_display = f"<span style='color: #ef4444; font-weight: bold; font-size: 12px; margin-right: 4px;'>[新進]</span>{row['Name']}" if is_new_entry else row['Name']
+
                 item_html = f'''
                 <li class="list-item">
-                    <div class="item-left"><span class="col-id">{code_str}</span><div class="name-wrapper"><span class="col-name">{row['Name']}</span></div></div>
+                    <div class="item-left"><span class="col-id">{code_str}</span><div class="name-wrapper"><span class="col-name">{name_display}</span></div></div>
                     <span class="col-qty {'val-buy' if is_buy else 'val-sell'}">{qty_str}</span>
                 </li>
                 '''
@@ -181,7 +189,7 @@ def generate():
                 </div>
             </div>
             '''
-            print(f"   ✅ 成功計算 {etf_code}：買進 {buy_count} 檔，賣出 {sell_count} 檔。")
+            print(f"  ✅ 成功計算 {etf_code}：買進 {buy_count} 檔，賣出 {sell_count} 檔。")
 
         if etf_blocks_html == "":
             etf_blocks_html = '<div style="color:#8898aa; padding: 30px; text-align:center; font-style:italic;">今日各檔 ETF 無成分股變動，或資料不足。</div>'
