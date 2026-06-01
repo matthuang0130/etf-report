@@ -21,14 +21,31 @@ def standardize_file(source_folder, etf_code, today_str):
     ext = os.path.splitext(latest_file)[1]
     new_name = f"{etf_code}_{today_str}{ext}"
     shutil.move(latest_file, os.path.join("data", new_name))
-    print(f"  ✅ 已歸檔至 data/: {new_name}")
+    print(f"  ✅ 已歸檔至 data/: {new_name}")
 
 def get_driver(download_path):
     chrome_options = Options()
     prefs = {"download.default_directory": os.path.abspath(download_path), "download.prompt_for_download": False}
     chrome_options.add_experimental_option("prefs", prefs)
-    chrome_options.add_argument("--headless")
+    
+    # 🌟 2026 終極隱形斗篷設定開始
+    chrome_options.add_argument("--headless=new") # 升級版無頭模式，更像真人
+    chrome_options.add_argument("--window-size=1920,1080") # 假裝有實體大螢幕
+    chrome_options.add_argument("--disable-gpu")
+    chrome_options.add_argument("--no-sandbox") # 必須加，否則雲端會閃退
+    chrome_options.add_argument("--disable-dev-shm-usage") # 必須加，防止雲端記憶體爆表
+    chrome_options.add_argument("--disable-blink-features=AutomationControlled") # 隱藏「自動化控制」標籤
+    chrome_options.add_experimental_option("excludeSwitches", ["enable-automation"])
+    chrome_options.add_experimental_option('useAutomationExtension', False)
+    # 偽裝成正常的 Windows 11 Chrome 瀏覽器
+    chrome_options.add_argument("user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36")
+    # 🌟 隱形斗篷設定結束
+
     driver = webdriver.Chrome(service=Service(ChromeDriverManager().install()), options=chrome_options)
+    
+    # 終極大絕招：用 JavaScript 把 webdriver 屬性抹除
+    driver.execute_script("Object.defineProperty(navigator, 'webdriver', {get: () => undefined})")
+    
     return driver
 
 def run_download():
@@ -42,8 +59,8 @@ def run_download():
         r = requests.get(url, timeout=10)
         if r.status_code == 200:
             with open(f"data/00991A_{today_str}.xlsx", "wb") as f: f.write(r.content)
-            print("  ✅ 00991A 下載成功")
-    except Exception as e: print(f"  ❌ 00991A 失敗: {e}")
+            print("  ✅ 00991A 下載成功")
+    except Exception as e: print(f"  ❌ 00991A 失敗: {e}")
 
     # 2, 4, 5. 統一 (使用迴圈處理，單個失敗不影響其他)
     etfs = [("00981A", "49YTW"), ("00403A", "63YTW"), ("00988A", "61YTW")]
@@ -60,7 +77,7 @@ def run_download():
             wait.until(EC.element_to_be_clickable((By.XPATH, "//button[contains(., '匯出')]"))).click()
             time.sleep(10)
             standardize_file(temp_folder, code, today_str)
-        except Exception as e: print(f"  ❌ {code} 失敗: {e}")
+        except Exception as e: print(f"  ❌ {code} 失敗: {e}")
         finally: 
             try: driver.quit()
             except: pass
@@ -80,7 +97,7 @@ def run_download():
         driver.execute_script("arguments[0].click();", btn)
         time.sleep(20)
         standardize_file(temp_folder, "00992A", today_str)
-    except Exception as e: print(f"  ❌ 00992A 失敗: {e}")
+    except Exception as e: print(f"  ❌ 00992A 失敗: {e}")
     finally:
         try: driver.quit()
         except: pass
