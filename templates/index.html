@@ -90,6 +90,8 @@
             border: 1px solid #eaeaea;
             border-radius: 6px;
             overflow: hidden;
+            /* 防止內部元素撐破外框 */
+            min-width: 0; 
         }
         
         /* 表頭與欄位 */
@@ -122,15 +124,21 @@
             padding: 0;
             margin: 0;
         }
+
+        /* 🌟 修正手機版長檔名擠壓版面 (加入自動截斷機制) */
         .list-item {
             display: flex;
             justify-content: space-between;
             padding: 12px 15px;
             border-bottom: 1px solid #f1f1f1;
             align-items: center;
+            width: 100%;
+            box-sizing: border-box; /* 確保 padding 不會撐大寬度 */
         }
         .list-item:last-child { border-bottom: none; }
         .item-left {
+            flex: 1;
+            min-width: 0; /* 防止子元素撐破 */
             display: flex;
             align-items: center;
             gap: 15px;
@@ -139,15 +147,28 @@
             width: 48px;
             color: #888;
             font-size: 14px;
+            flex-shrink: 0; /* 代號絕對不能被壓縮 */
+        }
+        .name-wrapper {
+            flex: 1;
+            min-width: 0;
+            margin-right: 10px; /* 與右側數量保持距離 */
         }
         .col-name {
+            display: block;
             font-weight: 500;
             color: #333;
+            white-space: nowrap; /* 不換行 */
+            overflow: hidden; /* 超出隱藏 */
+            text-overflow: ellipsis; /* 變成點點點 (...) */
         }
         .col-qty {
             font-weight: bold;
             text-align: right;
+            white-space: nowrap; /* 數量絕對不換行 */
+            flex-shrink: 0; /* 數量絕對不被壓縮 */
         }
+
         .val-buy { color: #e74c3c; }
         .val-sell { color: #2ecc71; }
         .empty-row {
