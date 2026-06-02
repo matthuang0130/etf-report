@@ -125,7 +125,7 @@ def run_download():
         # 尋找下載按鈕
         btn = wait.until(EC.presence_of_element_located((By.XPATH, "//*[contains(text(), '下載資料') or contains(text(), '匯出')]")))
         
-        print("  ⚡ 啟動防新分頁魔法，強制在當前授權視窗下載...")
+        print("  ⚡ 啟吃防新分頁魔法，強制在當前授權視窗下載...")
         # 🌟 終極殺手鐧：攔截所有開新分頁 (window.open) 以及 target="_blank" 的行為
         driver.execute_script("""
             // 1. 攔截 JS 的 window.open，改成強制在目前視窗跳轉
@@ -152,4 +152,5 @@ def run_download():
 
     print("=== 下載任務全部完成，準備自動產生報表 ===")
 
-if __name__ == "__
+if __name__ == "__main__":
+    run_download()
