@@ -15,7 +15,6 @@ from selenium.webdriver.support import expected_conditions as EC
 if not os.path.exists("data"): os.makedirs("data")
 
 def standardize_file(source_folder, etf_code, today_str):
-    # 確保沒有尚未下載完成的暫存檔 (.crdownload)
     for _ in range(15):
         files = os.listdir(source_folder)
         if any(f.endswith('.crdownload') or f.endswith('.tmp') for f in files):
@@ -25,7 +24,6 @@ def standardize_file(source_folder, etf_code, today_str):
             
     files = [os.path.join(source_folder, f) for f in os.listdir(source_folder) if not f.endswith('.crdownload') and not f.endswith('.tmp')]
     
-    # 防線：如果資料夾沒檔案，大聲報錯！
     if not files: 
         raise Exception("點擊了下載，但被雲端瀏覽器安全性阻擋，檔案未成功存入")
         
@@ -37,7 +35,7 @@ def standardize_file(source_folder, etf_code, today_str):
 
 def get_driver(download_path):
     abs_download_path = os.path.abspath(download_path)
-    os.makedirs(abs_download_path, exist_ok=True) # 確保資料夾絕對存在
+    os.makedirs(abs_download_path, exist_ok=True)
     
     chrome_options = Options()
     prefs = {
@@ -45,7 +43,7 @@ def get_driver(download_path):
         "download.prompt_for_download": False,
         "download.directory_upgrade": True,
         "safebrowsing.enabled": False,
-        "safebrowsing.disable_download_protection": True, # 🌟 終極解除防護
+        "safebrowsing.disable_download_protection": True,
         "profile.default_content_settings.popups": 0,
         "profile.default_content_setting_values.automatic_downloads": 1
     }
@@ -57,28 +55,13 @@ def get_driver(download_path):
     chrome_options.add_argument("--no-sandbox") 
     chrome_options.add_argument("--disable-dev-shm-usage") 
     chrome_options.add_argument("--disable-blink-features=AutomationControlled") 
-    chrome_options.add_argument("--ignore-certificate-errors") # 🌟 忽略憑證錯誤
+    chrome_options.add_argument("--ignore-certificate-errors")
     chrome_options.add_experimental_option("excludeSwitches", ["enable-automation"])
     chrome_options.add_experimental_option('useAutomationExtension', False)
     chrome_options.add_argument("user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36")
 
     driver = webdriver.Chrome(service=Service(ChromeDriverManager().install()), options=chrome_options)
     driver.execute_script("Object.defineProperty(navigator, 'webdriver', {get: () => undefined})")
-    
-    # 🌟 雙管齊下：強制開啟 Browser 與 Page 的下載權限
-    try:
-        driver.execute_cdp_cmd('Browser.setDownloadBehavior', {
-            'behavior': 'allow',
-            'downloadPath': abs_download_path,
-            'eventsEnabled': True
-        })
-    except: pass # 若舊版不支援則跳過
-    
-    driver.execute_cdp_cmd('Page.setDownloadBehavior', {
-        'behavior': 'allow',
-        'downloadPath': abs_download_path
-    })
-    
     return driver
 
 def run_download():
@@ -127,12 +110,26 @@ def run_download():
         wait = WebDriverWait(driver, 30)
         btn = wait.until(EC.presence_of_element_located((By.XPATH, "//*[contains(text(),'下載資料')]")))
         
-        # 🌟 殺手鐧：移除 target 屬性，防止開新分頁被雲端直接喀嚓
-        driver.execute_script("arguments[0].removeAttribute('target');", btn)
-        driver.execute_script("arguments[0].click();", btn)
+        # 🌟 2026 終極戰術：不按按鈕了！把網址偷出來給 Python 自己抓
+        download_url = btn.get_attribute('href')
         
-        time.sleep(20)
-        standardize_file(temp_folder, "00992A", today_str)
+        if download_url:
+            print(f"  🔍 成功偷取下載網址: {download_url}")
+            r = requests.get(download_url, timeout=15)
+            if r.status_code == 200:
+                with open(f"data/00992A_{today_str}.xlsx", "wb") as f: 
+                    f.write(r.content)
+                print(f"  ✅ 00992A 下載成功 (使用網址直連)")
+            else:
+                raise Exception(f"網址請求失敗，狀態碼: {r.status_code}")
+        else:
+            # 萬一沒有 href，再退回點擊法
+            print("  ⚠️ 找不到網址，退回點擊模式...")
+            driver.execute_script("arguments[0].removeAttribute('target');", btn)
+            driver.execute_script("arguments[0].click();", btn)
+            time.sleep(20)
+            standardize_file(temp_folder, "00992A", today_str)
+            
     except Exception as e: print(f"  ❌ 00992A 失敗: {e}")
     finally:
         try: driver.quit()
