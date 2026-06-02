@@ -62,6 +62,19 @@ def get_driver(download_path):
 
     driver = webdriver.Chrome(service=Service(ChromeDriverManager().install()), options=chrome_options)
     driver.execute_script("Object.defineProperty(navigator, 'webdriver', {get: () => undefined})")
+    
+    try:
+        driver.execute_cdp_cmd('Browser.setDownloadBehavior', {
+            'behavior': 'allow',
+            'downloadPath': abs_download_path,
+            'eventsEnabled': True
+        })
+    except: pass
+    
+    driver.execute_cdp_cmd('Page.setDownloadBehavior', {
+        'behavior': 'allow',
+        'downloadPath': abs_download_path
+    })
     return driver
 
 def run_download():
@@ -108,14 +121,17 @@ def run_download():
         driver = get_driver(temp_folder)
         driver.get("https://www.capitalfund.com.tw/etf/product/detail/500/portfolio")
         wait = WebDriverWait(driver, 30)
-        btn = wait.until(EC.presence_of_element_located((By.XPATH, "//*[contains(text(),'下載資料')]")))
         
-        # 🌟 2026 終極戰術：不按按鈕了！把網址偷出來給 Python 自己抓
+        # 🌟 破案關鍵：精準抓取外層的 <a> 標籤或 <button>，而不是裡面的文字
+        btn = wait.until(EC.presence_of_element_located((By.XPATH, "//a[contains(., '下載資料')] | //button[contains(., '下載資料')]")))
+        
         download_url = btn.get_attribute('href')
         
-        if download_url:
+        if download_url and not download_url.startswith('javascript'):
             print(f"  🔍 成功偷取下載網址: {download_url}")
-            r = requests.get(download_url, timeout=15)
+            # 加上 headers 偽裝，避免 requests 被擋
+            headers = {'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36'}
+            r = requests.get(download_url, headers=headers, timeout=15)
             if r.status_code == 200:
                 with open(f"data/00992A_{today_str}.xlsx", "wb") as f: 
                     f.write(r.content)
@@ -123,9 +139,10 @@ def run_download():
             else:
                 raise Exception(f"網址請求失敗，狀態碼: {r.status_code}")
         else:
-            # 萬一沒有 href，再退回點擊法
-            print("  ⚠️ 找不到網址，退回點擊模式...")
+            print("  ⚠️ 網址為 JS 動態生成，執行精準點擊模式...")
+            # 這次是對真正的 <a> 標籤拔除 target 屬性！
             driver.execute_script("arguments[0].removeAttribute('target');", btn)
+            # 使用原生 JS 點擊，無視任何網頁遮擋
             driver.execute_script("arguments[0].click();", btn)
             time.sleep(20)
             standardize_file(temp_folder, "00992A", today_str)
