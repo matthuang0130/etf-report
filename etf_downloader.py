@@ -15,23 +15,24 @@ from selenium.webdriver.support import expected_conditions as EC
 if not os.path.exists("data"): os.makedirs("data")
 
 def standardize_file(source_folder, etf_code, today_str):
-    for _ in range(15):
+    print(f"  ⏳ 正在雷達偵測檔案下載狀態...")
+    # 🌟 升級版智慧等待：最多等 45 秒，每秒巡邏一次，一下載完立刻收網
+    for _ in range(45):
         files = os.listdir(source_folder)
-        if any(f.endswith('.crdownload') or f.endswith('.tmp') for f in files):
-            time.sleep(2)
-        else:
-            break
-            
-    files = [os.path.join(source_folder, f) for f in os.listdir(source_folder) if not f.endswith('.crdownload') and not f.endswith('.tmp')]
-    
-    if not files: 
-        raise Exception("點擊了下載，但被雲端瀏覽器安全性阻擋，或網頁開啟了無權限的新分頁導致檔案遺失。")
+        # 過濾掉尚未下載完成的暫存檔與系統隱藏檔
+        valid_files = [f for f in files if not f.endswith('.crdownload') and not f.endswith('.tmp') and not f.startswith('.')]
         
-    latest_file = max(files, key=os.path.getctime)
-    ext = os.path.splitext(latest_file)[1]
-    new_name = f"{etf_code}_{today_str}{ext}"
-    shutil.move(latest_file, os.path.join("data", new_name))
-    print(f"  ✅ 已歸檔至 data/: {new_name}")
+        if valid_files and not any(f.endswith('.crdownload') for f in files):
+            latest_file = max([os.path.join(source_folder, f) for f in valid_files], key=os.path.getctime)
+            ext = os.path.splitext(latest_file)[1]
+            new_name = f"{etf_code}_{today_str}{ext}"
+            shutil.move(latest_file, os.path.join("data", new_name))
+            print(f"  ✅ 成功捕獲並歸檔至 data/: {new_name}")
+            return
+            
+        time.sleep(1)
+        
+    raise Exception("等候 45 秒仍未見檔案，可能是按鈕點擊無效或資料尚未生成。")
 
 def get_driver(download_path):
     abs_download_path = os.path.abspath(download_path)
@@ -42,10 +43,7 @@ def get_driver(download_path):
         "download.default_directory": abs_download_path,
         "download.prompt_for_download": False,
         "download.directory_upgrade": True,
-        "safebrowsing.enabled": False,
-        "safebrowsing.disable_download_protection": True,
-        "profile.default_content_settings.popups": 0,
-        "profile.default_content_setting_values.automatic_downloads": 1
+        "safebrowsing.enabled": False
     }
     chrome_options.add_experimental_option("prefs", prefs)
     
@@ -55,13 +53,11 @@ def get_driver(download_path):
     chrome_options.add_argument("--no-sandbox") 
     chrome_options.add_argument("--disable-dev-shm-usage") 
     chrome_options.add_argument("--disable-blink-features=AutomationControlled") 
-    chrome_options.add_argument("--ignore-certificate-errors")
     chrome_options.add_experimental_option("excludeSwitches", ["enable-automation"])
     chrome_options.add_experimental_option('useAutomationExtension', False)
     chrome_options.add_argument("user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36")
 
     driver = webdriver.Chrome(service=Service(ChromeDriverManager().install()), options=chrome_options)
-    driver.execute_script("Object.defineProperty(navigator, 'webdriver', {get: () => undefined})")
     
     try:
         driver.execute_cdp_cmd('Browser.setDownloadBehavior', {
@@ -71,10 +67,6 @@ def get_driver(download_path):
         })
     except: pass
     
-    driver.execute_cdp_cmd('Page.setDownloadBehavior', {
-        'behavior': 'allow',
-        'downloadPath': abs_download_path
-    })
     return driver
 
 def run_download():
@@ -104,8 +96,7 @@ def run_download():
             wait.until(EC.element_to_be_clickable((By.XPATH, "//a[contains(text(), '基金投資組合')]"))).click()
             time.sleep(2)
             wait.until(EC.element_to_be_clickable((By.XPATH, "//button[contains(., '匯出')]"))).click()
-            time.sleep(10)
-            standardize_file(temp_folder, code, today_str)
+            standardize_file(temp_folder, code, today_str) # 統一也改用智慧雷達偵測
         except Exception as e: print(f"  ❌ {code} 失敗: {e}")
         finally: 
             try: driver.quit()
@@ -120,27 +111,34 @@ def run_download():
         if not os.path.exists(temp_folder): os.makedirs(temp_folder)
         driver = get_driver(temp_folder)
         driver.get("https://www.capitalfund.com.tw/etf/product/detail/500/portfolio")
-        wait = WebDriverWait(driver, 30)
         
-        # 尋找下載按鈕
-        btn = wait.until(EC.presence_of_element_located((By.XPATH, "//*[contains(text(), '下載資料') or contains(text(), '匯出')]")))
+        # 🌟 破案關鍵 1：強迫等待 8 秒！讓群益網站的資料庫徹底把按鈕功能綁定好
+        print("  ⏳ 正在等待群益網頁底層資料庫連結...")
+        time.sleep(8) 
         
-        print("  ⚡ 啟吃防新分頁魔法，強制在當前授權視窗下載...")
-        # 🌟 終極殺手鐧：攔截所有開新分頁 (window.open) 以及 target="_blank" 的行為
-        driver.execute_script("""
-            // 1. 攔截 JS 的 window.open，改成強制在目前視窗跳轉
-            window.open = function(url) { 
-                window.location.href = url; 
-                return window; 
-            };
-            
-            // 2. 拔除畫面上所有表單與連結的新分頁設定
-            document.querySelectorAll('[target]').forEach(el => el.removeAttribute('target'));
-        """)
+        # 🌟 破案關鍵 2：找出畫面上「所有」下載按鈕，並避開隱藏的陷阱
+        btns = driver.find_elements(By.XPATH, "//*[contains(text(), '下載資料') or contains(text(), '匯出')]")
         
-        # 點擊下載
-        driver.execute_script("arguments[0].click();", btn)
-        time.sleep(20)
+        clicked = False
+        for btn in btns:
+            if btn.is_displayed():
+                print("  ⚡ 鎖定可見的下載按鈕，準備點擊...")
+                # 滑動螢幕對準它，避免被其他浮動視窗擋住
+                driver.execute_script("arguments[0].scrollIntoView({block: 'center'});", btn)
+                time.sleep(1)
+                try:
+                    btn.click() # 正規點擊
+                    clicked = True
+                except:
+                    driver.execute_script("arguments[0].click();", btn) # 強制點擊
+                    clicked = True
+                break
+                
+        if not clicked and btns:
+            print("  ⚠️ 找不到可見按鈕，對首個隱藏按鈕發射強制點擊！")
+            driver.execute_script("arguments[0].click();", btns[0])
+
+        # 使用智慧雷達偵測 992A 的檔案
         standardize_file(temp_folder, "00992A", today_str)
             
     except Exception as e: print(f"  ❌ 00992A 失敗: {e}")
