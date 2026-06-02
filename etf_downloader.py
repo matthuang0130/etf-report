@@ -25,7 +25,7 @@ def standardize_file(source_folder, etf_code, today_str):
     files = [os.path.join(source_folder, f) for f in os.listdir(source_folder) if not f.endswith('.crdownload') and not f.endswith('.tmp')]
     
     if not files: 
-        raise Exception("點擊了下載，但被雲端瀏覽器安全性阻擋，檔案未成功存入")
+        raise Exception("點擊了下載，但被雲端瀏覽器安全性阻擋，或網頁開啟了無權限的新分頁導致檔案遺失。")
         
     latest_file = max(files, key=os.path.getctime)
     ext = os.path.splitext(latest_file)[1]
@@ -122,30 +122,26 @@ def run_download():
         driver.get("https://www.capitalfund.com.tw/etf/product/detail/500/portfolio")
         wait = WebDriverWait(driver, 30)
         
-        # 🌟 破案關鍵：精準抓取外層的 <a> 標籤或 <button>，而不是裡面的文字
-        btn = wait.until(EC.presence_of_element_located((By.XPATH, "//a[contains(., '下載資料')] | //button[contains(., '下載資料')]")))
+        # 尋找下載按鈕
+        btn = wait.until(EC.presence_of_element_located((By.XPATH, "//*[contains(text(), '下載資料') or contains(text(), '匯出')]")))
         
-        download_url = btn.get_attribute('href')
+        print("  ⚡ 啟動防新分頁魔法，強制在當前授權視窗下載...")
+        # 🌟 終極殺手鐧：攔截所有開新分頁 (window.open) 以及 target="_blank" 的行為
+        driver.execute_script("""
+            // 1. 攔截 JS 的 window.open，改成強制在目前視窗跳轉
+            window.open = function(url) { 
+                window.location.href = url; 
+                return window; 
+            };
+            
+            // 2. 拔除畫面上所有表單與連結的新分頁設定
+            document.querySelectorAll('[target]').forEach(el => el.removeAttribute('target'));
+        """)
         
-        if download_url and not download_url.startswith('javascript'):
-            print(f"  🔍 成功偷取下載網址: {download_url}")
-            # 加上 headers 偽裝，避免 requests 被擋
-            headers = {'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36'}
-            r = requests.get(download_url, headers=headers, timeout=15)
-            if r.status_code == 200:
-                with open(f"data/00992A_{today_str}.xlsx", "wb") as f: 
-                    f.write(r.content)
-                print(f"  ✅ 00992A 下載成功 (使用網址直連)")
-            else:
-                raise Exception(f"網址請求失敗，狀態碼: {r.status_code}")
-        else:
-            print("  ⚠️ 網址為 JS 動態生成，執行精準點擊模式...")
-            # 這次是對真正的 <a> 標籤拔除 target 屬性！
-            driver.execute_script("arguments[0].removeAttribute('target');", btn)
-            # 使用原生 JS 點擊，無視任何網頁遮擋
-            driver.execute_script("arguments[0].click();", btn)
-            time.sleep(20)
-            standardize_file(temp_folder, "00992A", today_str)
+        # 點擊下載
+        driver.execute_script("arguments[0].click();", btn)
+        time.sleep(20)
+        standardize_file(temp_folder, "00992A", today_str)
             
     except Exception as e: print(f"  ❌ 00992A 失敗: {e}")
     finally:
@@ -156,5 +152,4 @@ def run_download():
 
     print("=== 下載任務全部完成，準備自動產生報表 ===")
 
-if __name__ == "__main__":
-    run_download()
+if __name__ == "__
