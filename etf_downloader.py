@@ -15,8 +15,20 @@ from selenium.webdriver.support import expected_conditions as EC
 if not os.path.exists("data"): os.makedirs("data")
 
 def standardize_file(source_folder, etf_code, today_str):
-    files = [os.path.join(source_folder, f) for f in os.listdir(source_folder)]
-    if not files: return
+    # 🌟 確保沒有尚未下載完成的暫存檔 (.crdownload)
+    for _ in range(15):
+        files = os.listdir(source_folder)
+        if any(f.endswith('.crdownload') or f.endswith('.tmp') for f in files):
+            time.sleep(2)
+        else:
+            break
+            
+    files = [os.path.join(source_folder, f) for f in os.listdir(source_folder) if not f.endswith('.crdownload') and not f.endswith('.tmp')]
+    
+    # 🌟 加上這道防線：如果資料夾沒檔案，必須大聲報錯！
+    if not files: 
+        raise Exception("點擊了下載，但被雲端瀏覽器安全性阻擋，檔案未成功存入")
+        
     latest_file = max(files, key=os.path.getctime)
     ext = os.path.splitext(latest_file)[1]
     new_name = f"{etf_code}_{today_str}{ext}"
@@ -24,27 +36,35 @@ def standardize_file(source_folder, etf_code, today_str):
     print(f"  ✅ 已歸檔至 data/: {new_name}")
 
 def get_driver(download_path):
+    abs_download_path = os.path.abspath(download_path)
     chrome_options = Options()
-    prefs = {"download.default_directory": os.path.abspath(download_path), "download.prompt_for_download": False}
+    prefs = {
+        "download.default_directory": abs_download_path,
+        "download.prompt_for_download": False,
+        "download.directory_upgrade": True,
+        "safebrowsing.enabled": False # 避免雲端防護擋下 Excel
+    }
     chrome_options.add_experimental_option("prefs", prefs)
     
-    # 🌟 2026 終極隱形斗篷設定開始
-    chrome_options.add_argument("--headless=new") # 升級版無頭模式，更像真人
-    chrome_options.add_argument("--window-size=1920,1080") # 假裝有實體大螢幕
+    # 🌟 2026 終極隱形斗篷設定
+    chrome_options.add_argument("--headless=new") 
+    chrome_options.add_argument("--window-size=1920,1080") 
     chrome_options.add_argument("--disable-gpu")
-    chrome_options.add_argument("--no-sandbox") # 必須加，否則雲端會閃退
-    chrome_options.add_argument("--disable-dev-shm-usage") # 必須加，防止雲端記憶體爆表
-    chrome_options.add_argument("--disable-blink-features=AutomationControlled") # 隱藏「自動化控制」標籤
+    chrome_options.add_argument("--no-sandbox") 
+    chrome_options.add_argument("--disable-dev-shm-usage") 
+    chrome_options.add_argument("--disable-blink-features=AutomationControlled") 
     chrome_options.add_experimental_option("excludeSwitches", ["enable-automation"])
     chrome_options.add_experimental_option('useAutomationExtension', False)
-    # 偽裝成正常的 Windows 11 Chrome 瀏覽器
     chrome_options.add_argument("user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36")
-    # 🌟 隱形斗篷設定結束
 
     driver = webdriver.Chrome(service=Service(ChromeDriverManager().install()), options=chrome_options)
-    
-    # 終極大絕招：用 JavaScript 把 webdriver 屬性抹除
     driver.execute_script("Object.defineProperty(navigator, 'webdriver', {get: () => undefined})")
+    
+    # 🌟 針對 Linux 雲端環境，強制開啟下載權限 (VIP 通行證)
+    driver.execute_cdp_cmd('Page.setDownloadBehavior', {
+        'behavior': 'allow',
+        'downloadPath': abs_download_path
+    })
     
     return driver
 
@@ -89,7 +109,6 @@ def run_download():
     temp_folder = "temp_992"
     try:
         if not os.path.exists(temp_folder): os.makedirs(temp_folder)
-        # 群益這邊改用 headless=True 避免視窗彈出干擾
         driver = get_driver(temp_folder)
         driver.get("https://www.capitalfund.com.tw/etf/product/detail/500/portfolio")
         wait = WebDriverWait(driver, 30)
