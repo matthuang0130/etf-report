@@ -15,7 +15,7 @@ from selenium.webdriver.support import expected_conditions as EC
 if not os.path.exists("data"): os.makedirs("data")
 
 def standardize_file(source_folder, etf_code, today_str):
-    # 🌟 確保沒有尚未下載完成的暫存檔 (.crdownload)
+    # 確保沒有尚未下載完成的暫存檔 (.crdownload)
     for _ in range(15):
         files = os.listdir(source_folder)
         if any(f.endswith('.crdownload') or f.endswith('.tmp') for f in files):
@@ -25,7 +25,7 @@ def standardize_file(source_folder, etf_code, today_str):
             
     files = [os.path.join(source_folder, f) for f in os.listdir(source_folder) if not f.endswith('.crdownload') and not f.endswith('.tmp')]
     
-    # 🌟 加上這道防線：如果資料夾沒檔案，必須大聲報錯！
+    # 防線：如果資料夾沒檔案，大聲報錯！
     if not files: 
         raise Exception("點擊了下載，但被雲端瀏覽器安全性阻擋，檔案未成功存入")
         
@@ -37,22 +37,27 @@ def standardize_file(source_folder, etf_code, today_str):
 
 def get_driver(download_path):
     abs_download_path = os.path.abspath(download_path)
+    os.makedirs(abs_download_path, exist_ok=True) # 確保資料夾絕對存在
+    
     chrome_options = Options()
     prefs = {
         "download.default_directory": abs_download_path,
         "download.prompt_for_download": False,
         "download.directory_upgrade": True,
-        "safebrowsing.enabled": False # 避免雲端防護擋下 Excel
+        "safebrowsing.enabled": False,
+        "safebrowsing.disable_download_protection": True, # 🌟 終極解除防護
+        "profile.default_content_settings.popups": 0,
+        "profile.default_content_setting_values.automatic_downloads": 1
     }
     chrome_options.add_experimental_option("prefs", prefs)
     
-    # 🌟 2026 終極隱形斗篷設定
     chrome_options.add_argument("--headless=new") 
     chrome_options.add_argument("--window-size=1920,1080") 
     chrome_options.add_argument("--disable-gpu")
     chrome_options.add_argument("--no-sandbox") 
     chrome_options.add_argument("--disable-dev-shm-usage") 
     chrome_options.add_argument("--disable-blink-features=AutomationControlled") 
+    chrome_options.add_argument("--ignore-certificate-errors") # 🌟 忽略憑證錯誤
     chrome_options.add_experimental_option("excludeSwitches", ["enable-automation"])
     chrome_options.add_experimental_option('useAutomationExtension', False)
     chrome_options.add_argument("user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36")
@@ -60,7 +65,15 @@ def get_driver(download_path):
     driver = webdriver.Chrome(service=Service(ChromeDriverManager().install()), options=chrome_options)
     driver.execute_script("Object.defineProperty(navigator, 'webdriver', {get: () => undefined})")
     
-    # 🌟 針對 Linux 雲端環境，強制開啟下載權限 (VIP 通行證)
+    # 🌟 雙管齊下：強制開啟 Browser 與 Page 的下載權限
+    try:
+        driver.execute_cdp_cmd('Browser.setDownloadBehavior', {
+            'behavior': 'allow',
+            'downloadPath': abs_download_path,
+            'eventsEnabled': True
+        })
+    except: pass # 若舊版不支援則跳過
+    
     driver.execute_cdp_cmd('Page.setDownloadBehavior', {
         'behavior': 'allow',
         'downloadPath': abs_download_path
@@ -72,7 +85,7 @@ def run_download():
     today_str = datetime.now().strftime("%Y%m%d")
     print(f"=== 開始執行下載任務: {today_str} ===")
 
-    # 1. 復華 (復華沒問題，不改)
+    # 1. 復華
     try:
         print("🌐 抓取 00991A...")
         url = f"https://www.fhtrust.com.tw/api/assetsExcel/ETF23/{today_str}"
@@ -82,7 +95,7 @@ def run_download():
             print("  ✅ 00991A 下載成功")
     except Exception as e: print(f"  ❌ 00991A 失敗: {e}")
 
-    # 2, 4, 5. 統一 (使用迴圈處理，單個失敗不影響其他)
+    # 2, 4, 5. 統一
     etfs = [("00981A", "49YTW"), ("00403A", "63YTW"), ("00988A", "61YTW")]
     for code, fund_code in etfs:
         print(f"🌐 抓取 {code}...")
@@ -104,7 +117,7 @@ def run_download():
             try: shutil.rmtree(temp_folder, ignore_errors=True)
             except: pass
 
-    # 3. 群益 (群益獨立處理)
+    # 3. 群益
     print("🌐 抓取 00992A...")
     temp_folder = "temp_992"
     try:
@@ -113,7 +126,11 @@ def run_download():
         driver.get("https://www.capitalfund.com.tw/etf/product/detail/500/portfolio")
         wait = WebDriverWait(driver, 30)
         btn = wait.until(EC.presence_of_element_located((By.XPATH, "//*[contains(text(),'下載資料')]")))
+        
+        # 🌟 殺手鐧：移除 target 屬性，防止開新分頁被雲端直接喀嚓
+        driver.execute_script("arguments[0].removeAttribute('target');", btn)
         driver.execute_script("arguments[0].click();", btn)
+        
         time.sleep(20)
         standardize_file(temp_folder, "00992A", today_str)
     except Exception as e: print(f"  ❌ 00992A 失敗: {e}")
