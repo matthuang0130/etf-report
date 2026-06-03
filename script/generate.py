@@ -11,7 +11,6 @@ ETF_MAPPING = {
 }
 
 def find_header_row(df):
-    # 🌟 升級：把掃描深度拉到 50 行，對付統一的多行廢話
     for i in range(min(50, len(df))): 
         row_str = "".join(str(x) for x in df.iloc[i].values).lower()
         if ('代' in row_str or 'code' in row_str) and ('股' in row_str or '權重' in row_str or 'qty' in row_str):
@@ -19,7 +18,6 @@ def find_header_row(df):
     return -1
 
 def smart_read_and_clean(filepath):
-    # 🌟 絕對防禦：如果是 Excel 產生的隱藏鎖定檔，直接無視，不要去讀它
     if os.path.basename(filepath).startswith('~$'):
         return None
 
@@ -29,13 +27,12 @@ def smart_read_and_clean(filepath):
             except: df_raw = pd.read_csv(filepath, encoding='big5', header=None)
             sheets = {'Sheet1': df_raw}
         else:
-            # 使用 sheet_name=None 確保能讀取到所有分頁 (如 992A)
             sheets = pd.read_excel(filepath, sheet_name=None, header=None)
 
         all_clean_data = []
         for sheet_name, df in sheets.items():
             header_idx = find_header_row(df)
-            if header_idx == -1: continue # 找不到就跳過該分頁
+            if header_idx == -1: continue 
 
             df.columns = df.iloc[header_idx].astype(str)
             df = df.iloc[header_idx+1:].reset_index(drop=True)
@@ -47,7 +44,6 @@ def smart_read_and_clean(filepath):
                     col_code = c
                 elif not col_name and ('名' in c_str or 'name' in c_str): 
                     col_name = c
-                # 🌟 破案關鍵：找數量時，絕對避開「權重」與「%」
                 elif not col_qty and ('股' in c_str or '張' in c_str or 'qty' in c_str) and '權重' not in c_str and '%' not in c_str: 
                     col_qty = c
 
@@ -63,7 +59,6 @@ def smart_read_and_clean(filepath):
             all_clean_data.append(clean_df)
 
         if all_clean_data:
-            # 確保所有分頁數據正確加總，並且把 Name 綁在一起不遺失
             combined = pd.concat(all_clean_data, ignore_index=True)
             return combined.groupby(['Code', 'Name'], as_index=False)['Qty'].sum()
         return None
@@ -85,13 +80,11 @@ def generate():
     for f in all_files:
         basename = os.path.basename(f)
         date_match = re.search(r'(\d{8})', basename)
-        # 🌟 升級：寬容抓取代號，992A 或 0403A 都能抓到
         etf_match = re.search(r'([0-9]{3,6}[A-Za-z]?)', basename)
         
         if date_match and etf_match:
             date_str = date_match.group(1)
             raw_code = etf_match.group(1).upper()
-            # 🌟 升級：自動將 992A 變成 00992A
             etf_code = "00" + raw_code.lstrip('0') 
             
             etf_history[etf_code][date_str] = f
@@ -113,7 +106,8 @@ def generate():
         
         etf_blocks_html = ""
         
-        for etf_code, dates_files in etf_history.items():
+        # 🌟 修正點：加上 sorted()，強制讓 ETF 代號由小排到大
+        for etf_code, dates_files in sorted(etf_history.items()):
             if target_date not in dates_files or previous_date not in dates_files:
                 print(f"    ⏭️ 略過 {etf_code}：因為缺乏 {target_date} 或 {previous_date} 兩天的完整檔案。")
                 continue 
@@ -133,7 +127,6 @@ def generate():
             df_merged['Name'] = df_merged['Name_T'].fillna(df_merged['Name_Y']).fillna("未知名稱")
             df_diff = df_merged[df_merged['Diff'] != 0].copy()
             
-            # 🌟 新增邏輯：無變動時也顯示於報表
             if df_diff.empty: 
                 print(f"    ⚖️ 無變動 {etf_code}：兩天持股完全一致 (將顯示於報表)。")
                 etf_name = ETF_MAPPING.get(etf_code, "其他投信成分股")
@@ -159,12 +152,10 @@ def generate():
                 
                 if '元' in code_str or '現金' in code_str or code_str == 'nan': continue
 
-                # 🌟 判斷是否為新進標的：昨天(Qty_Y)是 0 或 NaN，但今天(Qty_T)大於 0
                 is_new_entry = False
                 if is_buy and (pd.isna(row['Qty_Y']) or row['Qty_Y'] == 0):
                     is_new_entry = True
 
-                # 🌟 如果是新進，在名字前面加上紅色的標籤
                 name_display = f"<span style='color: #ef4444; font-weight: bold; font-size: 12px; margin-right: 4px;'>[新進]</span>{row['Name']}" if is_new_entry else row['Name']
 
                 item_html = f'''
