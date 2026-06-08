@@ -2,8 +2,8 @@ name: 🤖 每日自動更新 ETF 報表
 
 on:
   schedule:
-    # 🌟 指定台北時區！(每天晚上 19:30 執行)
-    - cron: '30 19 * * *'
+    # 🌟 指定台北時區！(每週一至週五晚上 19:30 執行，六日放假)
+    - cron: '30 19 * * 1-5'
       timezone: 'Asia/Taipei'
   workflow_dispatch: # 允許手動點擊觸發
 
