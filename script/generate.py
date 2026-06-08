@@ -106,7 +106,6 @@ def generate():
         
         etf_blocks_html = ""
         
-        # 🌟 修正點：加上 sorted()，強制讓 ETF 代號由小排到大
         for etf_code, dates_files in sorted(etf_history.items()):
             if target_date not in dates_files or previous_date not in dates_files:
                 print(f"    ⏭️ 略過 {etf_code}：因為缺乏 {target_date} 或 {previous_date} 兩天的完整檔案。")
@@ -115,8 +114,18 @@ def generate():
             df_today = smart_read_and_clean(dates_files[target_date])
             df_yest = smart_read_and_clean(dates_files[previous_date])
             
+            # 🌟 修正點：檔案損毀或無法讀取時，不要隱藏，顯示紅色錯誤區塊
             if df_today is None or df_yest is None: 
-                print(f"    ❌ 清洗失敗 {etf_code}：無法解析檔案內容。")
+                print(f"    ❌ 清洗失敗 {etf_code}：無法解析檔案內容 (將顯示錯誤提示)。")
+                etf_name = ETF_MAPPING.get(etf_code, "其他投信成分股")
+                etf_blocks_html += f'''
+                <div class="etf-section">
+                    <div class="etf-title"><span>{etf_code}</span> {etf_name}</div>
+                    <div style="text-align: center; padding: 40px 20px; color: #e74c3c; background-color: #fdf2f0; border-radius: 8px; border: 1px dashed #fadbd8; font-size: 16px;">
+                        ⚠️ 檔案讀取失敗：投信網站提供的資料格式異常，或假日無更新檔案。
+                    </div>
+                </div>
+                '''
                 continue
 
             df_merged = pd.merge(df_today, df_yest, on='Code', how='outer', suffixes=('_T', '_Y'))
