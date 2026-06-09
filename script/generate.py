@@ -5,9 +5,11 @@ import glob
 import re
 from collections import defaultdict
 
+# 🌟 包含所有 7 檔 ETF 名稱對應表
 ETF_MAPPING = {
     "00403A": "統一升級50", "00981A": "統一台股增長", "00988A": "統一全球創新",
-    "00991A": "復華未來50", "00992A": "群益科技"
+    "00991A": "復華未來50", "00992A": "群益科技",
+    "00405A": "富邦台灣龍耀", "00402A": "安聯美國科技"
 }
 
 def find_header_row(df):
@@ -27,7 +29,15 @@ def smart_read_and_clean(filepath):
             except: df_raw = pd.read_csv(filepath, encoding='big5', header=None)
             sheets = {'Sheet1': df_raw}
         else:
-            sheets = pd.read_excel(filepath, sheet_name=None, header=None)
+            try:
+                sheets = pd.read_excel(filepath, sheet_name=None, header=None)
+            except Exception as e:
+                # 🌟 破解富邦的「假 Excel 真 HTML」護盾
+                try:
+                    dfs = pd.read_html(filepath, encoding='utf-8', header=None)
+                except:
+                    dfs = pd.read_html(filepath, encoding='big5', header=None)
+                sheets = {f'Sheet{i}': df for i, df in enumerate(dfs)}
 
         all_clean_data = []
         for sheet_name, df in sheets.items():
@@ -85,7 +95,7 @@ def generate():
         if date_match and etf_match:
             date_str = date_match.group(1)
             raw_code = etf_match.group(1).upper()
-            etf_code = "00" + raw_code.lstrip('0') 
+            etf_code = "00" + raw_code.lstrip('0') if len(raw_code.lstrip('0')) <= 4 else raw_code 
             
             etf_history[etf_code][date_str] = f
             all_dates.add(date_str)
@@ -93,7 +103,7 @@ def generate():
 
     sorted_dates = sorted(list(all_dates), reverse=True)
     if len(sorted_dates) < 2:
-        print("⚠️ 警告：資料夾內至少需要『兩天』的檔案 (如 0527 加上 0528) 才能計算買賣差額喔！")
+        print("⚠️ 警告：資料夾內至少需要『兩天』的檔案 才能計算買賣差額喔！")
         return
 
     with open('templates/index.html', 'r', encoding='utf-8') as f:
@@ -108,15 +118,14 @@ def generate():
         
         for etf_code, dates_files in sorted(etf_history.items()):
             if target_date not in dates_files or previous_date not in dates_files:
-                print(f"    ⏭️ 略過 {etf_code}：因為缺乏 {target_date} 或 {previous_date} 兩天的完整檔案。")
+                print(f"    ⏭️ 略過 {etf_code}：因為缺乏兩天的完整檔案。")
                 continue 
                 
             df_today = smart_read_and_clean(dates_files[target_date])
             df_yest = smart_read_and_clean(dates_files[previous_date])
             
-            # 🌟 修正點：檔案損毀或無法讀取時，不要隱藏，顯示紅色錯誤區塊
             if df_today is None or df_yest is None: 
-                print(f"    ❌ 清洗失敗 {etf_code}：無法解析檔案內容 (將顯示錯誤提示)。")
+                print(f"    ❌ 清洗失敗 {etf_code}：無法解析檔案內容。")
                 etf_name = ETF_MAPPING.get(etf_code, "其他投信成分股")
                 etf_blocks_html += f'''
                 <div class="etf-section">
@@ -137,7 +146,7 @@ def generate():
             df_diff = df_merged[df_merged['Diff'] != 0].copy()
             
             if df_diff.empty: 
-                print(f"    ⚖️ 無變動 {etf_code}：兩天持股完全一致 (將顯示於報表)。")
+                print(f"    ⚖️ 無變動 {etf_code}：兩天持股完全一致。")
                 etf_name = ETF_MAPPING.get(etf_code, "其他投信成分股")
                 etf_blocks_html += f'''
                 <div class="etf-section">

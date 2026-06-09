@@ -2,7 +2,7 @@ name: 🤖 每日自動更新 ETF 報表
 
 on:
   schedule:
-    # 🌟 指定台北時區！(每週一至週五晚上 19:30 執行，六日放假)
+    # 每週一至週五晚上 19:30 執行，六日放假
     - cron: '30 19 * * 1-5'
       timezone: 'Asia/Taipei'
   workflow_dispatch: # 允許手動點擊觸發
@@ -18,24 +18,23 @@ jobs:
       - name: 1. 下載您的程式碼
         uses: actions/checkout@v4
         with:
-          fetch-depth: 0 # 抓取完整歷史紀錄以利防撞合併
+          fetch-depth: 0
 
       - name: 2. 安裝 Python 環境
         uses: actions/setup-python@v4
         with:
           python-version: '3.10'
 
-      - name: 3. 安裝必備套件 (包含爬蟲所需的 selenium 等)
+      - name: 3. 安裝必備套件 (包含爬蟲與HTML解析所需)
         run: |
           python -m pip install --upgrade pip
-          pip install pandas openpyxl requests selenium webdriver-manager
+          # 🌟 補上了 lxml 套件，專門用來對付富邦的假 Excel
+          pip install pandas openpyxl requests selenium webdriver-manager lxml
 
       - name: 4. 🤖 執行自動爬蟲抓取最新檔案
-        # 🌟 呼叫外面那層的下載器
         run: python etf_downloader.py
 
       - name: 5. 🧮 執行自動清洗與產出報表
-        # 🌟 呼叫 script 資料夾裡的網頁生成器
         run: python script/generate.py
 
       - name: 6. 💾 將新檔案與報表存檔並推回 GitHub
