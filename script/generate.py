@@ -22,7 +22,7 @@ def extract_fund_size(df):
             # 尋找關鍵字
             if any(keyword in row_str for keyword in ['規模', '淨資產', '資產價值', '發行餘額', '資產總額', '總資產', '淨值總額', '基金資產', '總金額']):
                 
-                # 1. 先嘗試在「同一行」找數字 (富邦、統一等適用)
+                # 1. 先嘗試在「同一行」找數字
                 for val_str in row_vals:
                     try:
                         clean_val = re.sub(r'[^\d\.\-eE]', '', val_str)
@@ -36,7 +36,7 @@ def extract_fund_size(df):
                     except:
                         pass
                 
-                # 2. 🌟 如果同一行沒找到，就往下看「下一行」 (專武：復華排版)
+                # 2. 如果同一行沒找到，就往下看「下一行」 (專武：復華排版)
                 if i + 1 < len(df):
                     next_row_vals = [str(x).strip().replace(',', '') for x in df.iloc[i+1].values if pd.notna(x)]
                     for val_str in next_row_vals:
@@ -49,7 +49,6 @@ def extract_fund_size(df):
                                 return f"{val / 100000000:.2f} 億"
                         except:
                             pass
-
     except Exception:
         pass
     return ""
@@ -119,6 +118,11 @@ def smart_read_and_clean(filepath):
             if col_weight:
                 clean_df = clean_df.rename(columns={col_weight: 'Weight'})
                 clean_df['Weight'] = pd.to_numeric(clean_df['Weight'].astype(str).str.replace('%', '').str.replace(',', '').str.replace('"', ''), errors='coerce').fillna(0)
+                
+                # 🌟 新增：復華比例防護 (小數點自動校正)
+                # 如果該投信的權重是用小數點 (總和會小於等於 2)，就自動幫它乘以 100 變回百分比
+                if 0 < clean_df['Weight'].sum() <= 2:
+                    clean_df['Weight'] = clean_df['Weight'] * 100
             else:
                 clean_df['Weight'] = 0.0
 
