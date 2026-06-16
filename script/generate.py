@@ -1,4 +1,4 @@
-print("🚀 終極完全體啟動：自動清洗 + 自動比對差額 + 網頁產出...")
+print("🚀 終極完全體啟動：自動清洗 + 自動比對差額 + 前 20 大持股解析 + 基金規模探測 + 網頁產出...")
 import pandas as pd
 import os
 import glob
@@ -12,6 +12,48 @@ ETF_MAPPING = {
     "00405A": "富邦台灣龍耀", "00402A": "安聯美國科技"
 }
 
+def extract_fund_size(df):
+    """ 🌟 升級版：十字掃描雷達，支援復華的「上下換行」排版格式 """
+    try:
+        for i in range(min(20, len(df))):
+            row_vals = [str(x).strip().replace(',', '') for x in df.iloc[i].values if pd.notna(x)]
+            row_str = " ".join(row_vals)
+            
+            # 尋找關鍵字
+            if any(keyword in row_str for keyword in ['規模', '淨資產', '資產價值', '發行餘額', '資產總額', '總資產', '淨值總額', '基金資產', '總金額']):
+                
+                # 1. 先嘗試在「同一行」找數字 (富邦、統一等適用)
+                for val_str in row_vals:
+                    try:
+                        clean_val = re.sub(r'[^\d\.\-eE]', '', val_str)
+                        if not clean_val: continue
+                        val = float(clean_val)
+                        
+                        if val > 10000000:
+                            return f"{val / 100000000:.2f} 億"
+                        elif 0 < val < 100000 and '億' in row_str:
+                            return f"{val:.2f} 億"
+                    except:
+                        pass
+                
+                # 2. 🌟 如果同一行沒找到，就往下看「下一行」 (專武：復華排版)
+                if i + 1 < len(df):
+                    next_row_vals = [str(x).strip().replace(',', '') for x in df.iloc[i+1].values if pd.notna(x)]
+                    for val_str in next_row_vals:
+                        try:
+                            clean_val = re.sub(r'[^\d\.\-eE]', '', val_str)
+                            if not clean_val: continue
+                            val = float(clean_val)
+                            
+                            if val > 10000000:
+                                return f"{val / 100000000:.2f} 億"
+                        except:
+                            pass
+
+    except Exception:
+        pass
+    return ""
+
 def find_header_row(df):
     for i in range(min(50, len(df))): 
         row_str = "".join(str(x) for x in df.iloc[i].values).lower()
@@ -21,8 +63,9 @@ def find_header_row(df):
 
 def smart_read_and_clean(filepath):
     if os.path.basename(filepath).startswith('~$'):
-        return None
+        return None, ""
 
+    fund_size = ""
     try:
         if filepath.endswith('.csv'):
             try: df_raw = pd.read_csv(filepath, encoding='utf-8', header=None)
@@ -32,7 +75,7 @@ def smart_read_and_clean(filepath):
             try:
                 sheets = pd.read_excel(filepath, sheet_name=None, header=None)
             except Exception as e:
-                # 🌟 破解富邦的「假 Excel 真 HTML」護盾
+                # 破解富邦的「假 Excel 真 HTML」護盾
                 try:
                     dfs = pd.read_html(filepath, encoding='utf-8', header=None)
                 except:
@@ -41,13 +84,16 @@ def smart_read_and_clean(filepath):
 
         all_clean_data = []
         for sheet_name, df in sheets.items():
+            if not fund_size:
+                fund_size = extract_fund_size(df)
+
             header_idx = find_header_row(df)
             if header_idx == -1: continue 
 
             df.columns = df.iloc[header_idx].astype(str)
             df = df.iloc[header_idx+1:].reset_index(drop=True)
 
-            col_code, col_name, col_qty = None, None, None
+            col_code, col_name, col_qty, col_weight = None, None, None, None
             for c in df.columns:
                 c_str = str(c).lower().strip()
                 if not col_code and ('代' in c_str or 'code' in c_str): 
@@ -56,12 +102,25 @@ def smart_read_and_clean(filepath):
                     col_name = c
                 elif not col_qty and ('股' in c_str or '張' in c_str or 'qty' in c_str) and '權重' not in c_str and '%' not in c_str: 
                     col_qty = c
+                elif not col_weight and ('權' in c_str or '比' in c_str or '%' in c_str or 'weight' in c_str): 
+                    col_weight = c
 
             if not (col_code and col_qty): continue
 
-            clean_df = df[[col_code, col_name, col_qty]].copy() if col_name else df[[col_code, col_qty]].copy()
-            clean_df.columns = ['Code', 'Name', 'Qty'] if col_name else ['Code', 'Qty']
-            if not col_name: clean_df['Name'] = ""
+            cols_to_keep = [col_code, col_qty]
+            if col_name: cols_to_keep.append(col_name)
+            if col_weight: cols_to_keep.append(col_weight)
+
+            clean_df = df[cols_to_keep].copy()
+            clean_df = clean_df.rename(columns={col_code: 'Code', col_qty: 'Qty'})
+            if col_name: clean_df = clean_df.rename(columns={col_name: 'Name'})
+            else: clean_df['Name'] = ""
+            
+            if col_weight:
+                clean_df = clean_df.rename(columns={col_weight: 'Weight'})
+                clean_df['Weight'] = pd.to_numeric(clean_df['Weight'].astype(str).str.replace('%', '').str.replace(',', '').str.replace('"', ''), errors='coerce').fillna(0)
+            else:
+                clean_df['Weight'] = 0.0
 
             clean_df = clean_df.dropna(subset=['Code'])
             clean_df['Qty'] = pd.to_numeric(clean_df['Qty'].astype(str).str.replace(',', '').str.replace('"', ''), errors='coerce')
@@ -70,11 +129,11 @@ def smart_read_and_clean(filepath):
 
         if all_clean_data:
             combined = pd.concat(all_clean_data, ignore_index=True)
-            return combined.groupby(['Code', 'Name'], as_index=False)['Qty'].sum()
-        return None
+            return combined.groupby(['Code', 'Name'], as_index=False).agg({'Qty': 'sum', 'Weight': 'sum'}), fund_size
+        return None, ""
     except Exception as e:
         print(f"❌ 讀取失敗 {os.path.basename(filepath)}: {e}")
-        return None
+        return None, ""
 
 def generate():
     os.makedirs('dist', exist_ok=True)
@@ -121,10 +180,10 @@ def generate():
                 print(f"    ⏭️ 略過 {etf_code}：因為缺乏兩天的完整檔案。")
                 continue 
                 
-            df_today = smart_read_and_clean(dates_files[target_date])
-            df_yest = smart_read_and_clean(dates_files[previous_date])
+            res_today = smart_read_and_clean(dates_files[target_date])
+            res_yest = smart_read_and_clean(dates_files[previous_date])
             
-            if df_today is None or df_yest is None: 
+            if res_today[0] is None or res_yest[0] is None: 
                 print(f"    ❌ 清洗失敗 {etf_code}：無法解析檔案內容。")
                 etf_name = ETF_MAPPING.get(etf_code, "其他投信成分股")
                 etf_blocks_html += f'''
@@ -136,6 +195,43 @@ def generate():
                 </div>
                 '''
                 continue
+
+            df_today, size_today = res_today
+            df_yest, size_yest = res_yest
+
+            size_badge = f'<span style="font-size: 14px; font-weight: 600; color: #0f172a; margin-left: 12px; background: #e2e8f0; padding: 4px 10px; border-radius: 20px; letter-spacing: 0.5px;">規模: {size_today}</span>' if size_today else ""
+
+            top20_df = df_today.sort_values(by=['Weight', 'Qty'], ascending=[False, False])
+            valid_holdings = top20_df[~top20_df['Code'].astype(str).str.contains('元|現金|nan|小計|合計|總計', case=False, na=False)]
+            top20_items = valid_holdings.head(20)
+            
+            top20_html = ""
+            for rank, row in enumerate(top20_items.itertuples(), 1):
+                code_str = str(row.Code).replace('.0', '')
+                name_str = str(row.Name)
+                weight_str = f"{row.Weight:.2f}%" if row.Weight > 0 else f"{int(row.Qty):,} 股"
+                
+                top20_html += f'''
+                <li class="list-item" style="border: 1px solid #e2e8f0; border-radius: 6px; padding: 10px 16px; display: flex; justify-content: space-between; align-items: center; background-color: #fff; margin-bottom: 0;">
+                    <div class="item-left" style="display: flex; align-items: center;">
+                        <span style="display:inline-block; width:28px; color:#64748b; font-size:14px; font-weight:bold; font-style:italic;">#{rank}</span>
+                        <span class="col-id" style="width:65px; font-family: monospace; color:#475569;">{code_str}</span>
+                        <div class="name-wrapper"><span class="col-name" style="font-weight:700; color:#1e293b;">{name_str}</span></div>
+                    </div>
+                    <span class="col-qty" style="color:#0ea5e9; font-weight:800; font-size: 15px;">{weight_str}</span>
+                </li>
+                '''
+            
+            top20_block = f'''
+            <div class="table-box" style="margin-top: 20px; max-width: 100%; background-color: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px; padding: 16px;">
+                <div class="box-header" style="background-color: #334155; color: white; padding: 12px 16px; border-radius: 6px; margin-bottom: 12px; display: flex; justify-content: space-between;">
+                    <div style="font-weight: bold; font-size: 16px;">👑 前 20 大持股 (本日)</div>
+                </div>
+                <ul class="data-list" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 12px; padding: 0; list-style: none; margin: 0;">
+                    {top20_html}
+                </ul>
+            </div>
+            '''
 
             df_merged = pd.merge(df_today, df_yest, on='Code', how='outer', suffixes=('_T', '_Y'))
             df_merged['Qty_T'] = df_merged['Qty_T'].fillna(0)
@@ -150,10 +246,11 @@ def generate():
                 etf_name = ETF_MAPPING.get(etf_code, "其他投信成分股")
                 etf_blocks_html += f'''
                 <div class="etf-section">
-                    <div class="etf-title"><span>{etf_code}</span> {etf_name}</div>
+                    <div class="etf-title" style="display: flex; align-items: center; flex-wrap: wrap;"><span>{etf_code}</span> {etf_name} {size_badge}</div>
                     <div style="text-align: center; padding: 40px 20px; color: #8898aa; background-color: #f8f9fa; border-radius: 8px; border: 1px dashed #dce1e7; font-size: 16px;">
                         ⚖️ 今日成分股無任何買賣變動
                     </div>
+                    {top20_block}
                 </div>
                 '''
                 continue
@@ -193,7 +290,7 @@ def generate():
             etf_name = ETF_MAPPING.get(etf_code, "其他投信成分股")
             etf_blocks_html += f'''
             <div class="etf-section">
-                <div class="etf-title"><span>{etf_code}</span> {etf_name}</div>
+                <div class="etf-title" style="display: flex; align-items: center; flex-wrap: wrap;"><span>{etf_code}</span> {etf_name} {size_badge}</div>
                 <div class="tables-grid">
                     <div class="table-box">
                         <div class="box-header header-buy"><div>買進成分股</div><div>共 {buy_count} 檔</div></div>
@@ -206,9 +303,10 @@ def generate():
                         <ul class="data-list">{sell_html}</ul>
                     </div>
                 </div>
+                {top20_block}
             </div>
             '''
-            print(f"  ✅ 成功計算 {etf_code}：買進 {buy_count} 檔，賣出 {sell_count} 檔。")
+            print(f"  ✅ 成功計算 {etf_code}：買進 {buy_count} 檔，賣出 {sell_count} 檔，並產出前 20 大持股與規模。")
 
         if etf_blocks_html == "":
             etf_blocks_html = '<div style="color:#8898aa; padding: 30px; text-align:center; font-style:italic;">今日各檔 ETF 無成分股變動，或資料不足。</div>'
