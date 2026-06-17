@@ -214,7 +214,19 @@
             <h1>ETF 成分股變動追蹤</h1>
             <div class="date-badge">更新日期：2026/05/27</div>
         </div>
-        <div class="date-menu"><a href="20260616.html" class="menu-btn ">06/16</a><a href="20260615.html" class="menu-btn ">06/15</a><a href="20260612.html" class="menu-btn ">06/12</a><a href="20260611.html" class="menu-btn ">06/11</a><a href="20260610.html" class="menu-btn ">06/10</a><a href="20260609.html" class="menu-btn ">06/09</a><a href="20260608.html" class="menu-btn ">06/08</a><a href="20260605.html" class="menu-btn ">06/05</a><a href="20260604.html" class="menu-btn ">06/04</a><a href="20260603.html" class="menu-btn ">06/03</a><a href="20260602.html" class="menu-btn ">06/02</a><a href="20260601.html" class="menu-btn ">06/01</a><a href="20260529.html" class="menu-btn ">05/29</a><a href="20260528.html" class="menu-btn ">05/28</a><a href="20260527.html" class="menu-btn active">05/27</a></div>
+        <div class="date-menu" style="display: flex; flex-wrap: wrap; gap: 8px; align-items: center; position: relative; z-index: 50;"><a href="20260617.html" class="menu-btn ">06/17</a><a href="20260616.html" class="menu-btn ">06/16</a><a href="20260615.html" class="menu-btn ">06/15</a><a href="20260612.html" class="menu-btn ">06/12</a><a href="20260611.html" class="menu-btn ">06/11</a>
+                <style>
+                    details > summary { list-style: none; outline: none !important; user-select: none; -webkit-tap-highlight-color: transparent; cursor: pointer; background-color: #f8fafc; border: 1px solid #94a3b8; color: #475569; padding: 6px 12px; border-radius: 20px; font-size: 14px; font-weight: bold; transition: all 0.2s; }
+                    details > summary::-webkit-details-marker { display: none; }
+                    details > summary:focus, details > summary:active, details > summary:focus-visible { outline: none !important; box-shadow: none !important; border-color: #94a3b8; }
+                    details[open] > summary { background-color: #e2e8f0; color: #0f172a; }
+                    .more-dates-dropdown { position: absolute; top: 100%; left: 0; margin-top: 8px; background: #ffffff; border: 1px solid #e2e8f0; border-radius: 12px; box-shadow: 0 10px 25px -5px rgba(0,0,0,0.1), 0 8px 10px -6px rgba(0,0,0,0.1); padding: 16px; display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; z-index: 100; width: max-content; min-width: 320px; }
+                    @media (max-width: 600px) { .more-dates-dropdown { grid-template-columns: repeat(3, 1fr); min-width: 280px; left: 0;} }
+                </style>
+                <details style="position: relative;">
+                    <summary>歷史紀錄 ▾</summary>
+                    <div class="more-dates-dropdown">
+                <a href="20260610.html" class="menu-btn ">06/10</a><a href="20260609.html" class="menu-btn ">06/09</a><a href="20260608.html" class="menu-btn ">06/08</a><a href="20260605.html" class="menu-btn ">06/05</a><a href="20260604.html" class="menu-btn ">06/04</a><a href="20260603.html" class="menu-btn ">06/03</a><a href="20260602.html" class="menu-btn ">06/02</a><a href="20260601.html" class="menu-btn ">06/01</a><a href="20260529.html" class="menu-btn ">05/29</a><a href="20260528.html" class="menu-btn ">05/28</a><a href="20260527.html" class="menu-btn active">05/27</a></div></details></div>
             <div class="etf-section">
                 <div class="etf-title" style="display: flex; align-items: center; flex-wrap: wrap;"><span>00988A</span> 統一全球創新 <span style="font-size: 14px; font-weight: 600; color: #0f172a; margin-left: 12px; background: #e2e8f0; padding: 4px 10px; border-radius: 20px; letter-spacing: 0.5px;">規模: 422.48 億</span></div>
                 <div class="tables-grid">
@@ -222,9 +234,14 @@
                         <div class="box-header header-buy"><div>買進成分股</div><div>共 1 檔</div></div>
                         <div class="list-header"><div class="list-header-left"><span style="width:48px;display:inline-block;">代號</span><span>名稱</span></div><span>數量</span></div>
                         <ul class="data-list">
-                <li class="list-item">
-                    <div class="item-left"><span class="col-id">6963 JP</span><div class="name-wrapper"><span class="col-name"><span style='color: #ef4444; font-weight: bold; font-size: 12px; margin-right: 4px;'>[新進]</span>ROHM CO LTD</span></div></div>
-                    <span class="col-qty val-buy">+200,000</span>
+                <li class="list-item" style="display: flex; align-items: center; min-height: 40px;">
+                    <div class="item-left" style="display: flex; align-items: center; flex: 1; min-width: 0;">
+                        <span class="col-id" style="flex-shrink: 0; width: 50px;">6963 JP</span>
+                        <div class="name-wrapper" style="flex: 1; min-width: 0; margin-right: 10px;">
+                            <span class="col-name" style="white-space: normal; word-break: break-word; line-height: 1.3; display: block;"><span style='color: #ef4444; font-weight: bold; font-size: 12px; margin-right: 4px;'>[新進]</span>ROHM CO LTD</span>
+                        </div>
+                    </div>
+                    <span class="col-qty val-buy" style="flex-shrink: 0;">+200,000</span>
                 </li>
                 </ul>
                     </div>
@@ -241,184 +258,224 @@
                 </div>
                 <ul class="data-list" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 12px; padding: 0; list-style: none; margin: 0;">
                     
-                <li class="list-item" style="border: 1px solid #e2e8f0; border-radius: 6px; padding: 10px 16px; display: flex; justify-content: space-between; align-items: center; background-color: #fff; margin-bottom: 0;">
-                    <div class="item-left" style="display: flex; align-items: center;">
-                        <span style="display:inline-block; width:28px; color:#64748b; font-size:14px; font-weight:bold; font-style:italic;">#1</span>
-                        <span class="col-id" style="width:65px; font-family: monospace; color:#475569;">MU US</span>
-                        <div class="name-wrapper"><span class="col-name" style="font-weight:700; color:#1e293b;">MICRON TECHNOLOGY INC</span></div>
+                <li class="list-item" style="border: 1px solid #e2e8f0; border-radius: 6px; padding: 10px 12px; display: flex; justify-content: space-between; align-items: center; background-color: #fff; margin-bottom: 0; min-height: 48px;">
+                    <div class="item-left" style="display: flex; align-items: center; flex: 1; min-width: 0; margin-right: 12px;">
+                        <span style="display:inline-block; width:24px; flex-shrink: 0; color:#64748b; font-size:13px; font-weight:bold; font-style:italic;">#1</span>
+                        <span class="col-id" style="width:60px; flex-shrink: 0; font-family: monospace; color:#475569; font-size: 14px;">MU US</span>
+                        <div class="name-wrapper" style="flex: 1; min-width: 0;">
+                            <span class="col-name" style="font-weight:700; color:#1e293b; font-size: 13px; white-space: normal; word-break: break-word; line-height: 1.3; display: block;">MICRON TECHNOLOGY INC</span>
+                        </div>
                     </div>
-                    <span class="col-qty" style="color:#0ea5e9; font-weight:800; font-size: 15px;">5.41%</span>
+                    <span class="col-qty" style="flex-shrink: 0; color:#0ea5e9; font-weight:800; font-size: 14px;">5.41%</span>
                 </li>
                 
-                <li class="list-item" style="border: 1px solid #e2e8f0; border-radius: 6px; padding: 10px 16px; display: flex; justify-content: space-between; align-items: center; background-color: #fff; margin-bottom: 0;">
-                    <div class="item-left" style="display: flex; align-items: center;">
-                        <span style="display:inline-block; width:28px; color:#64748b; font-size:14px; font-weight:bold; font-style:italic;">#2</span>
-                        <span class="col-id" style="width:65px; font-family: monospace; color:#475569;">009150 KS</span>
-                        <div class="name-wrapper"><span class="col-name" style="font-weight:700; color:#1e293b;">Samsung Electro-Mechanics co(009150 ks)</span></div>
+                <li class="list-item" style="border: 1px solid #e2e8f0; border-radius: 6px; padding: 10px 12px; display: flex; justify-content: space-between; align-items: center; background-color: #fff; margin-bottom: 0; min-height: 48px;">
+                    <div class="item-left" style="display: flex; align-items: center; flex: 1; min-width: 0; margin-right: 12px;">
+                        <span style="display:inline-block; width:24px; flex-shrink: 0; color:#64748b; font-size:13px; font-weight:bold; font-style:italic;">#2</span>
+                        <span class="col-id" style="width:60px; flex-shrink: 0; font-family: monospace; color:#475569; font-size: 14px;">009150 KS</span>
+                        <div class="name-wrapper" style="flex: 1; min-width: 0;">
+                            <span class="col-name" style="font-weight:700; color:#1e293b; font-size: 13px; white-space: normal; word-break: break-word; line-height: 1.3; display: block;">Samsung Electro-Mechanics co(009150 ks)</span>
+                        </div>
                     </div>
-                    <span class="col-qty" style="color:#0ea5e9; font-weight:800; font-size: 15px;">5.00%</span>
+                    <span class="col-qty" style="flex-shrink: 0; color:#0ea5e9; font-weight:800; font-size: 14px;">5.00%</span>
                 </li>
                 
-                <li class="list-item" style="border: 1px solid #e2e8f0; border-radius: 6px; padding: 10px 16px; display: flex; justify-content: space-between; align-items: center; background-color: #fff; margin-bottom: 0;">
-                    <div class="item-left" style="display: flex; align-items: center;">
-                        <span style="display:inline-block; width:28px; color:#64748b; font-size:14px; font-weight:bold; font-style:italic;">#3</span>
-                        <span class="col-id" style="width:65px; font-family: monospace; color:#475569;">AMD US</span>
-                        <div class="name-wrapper"><span class="col-name" style="font-weight:700; color:#1e293b;">ADVANCED MICRO DEVICES.amd us(超微半導體公司)</span></div>
+                <li class="list-item" style="border: 1px solid #e2e8f0; border-radius: 6px; padding: 10px 12px; display: flex; justify-content: space-between; align-items: center; background-color: #fff; margin-bottom: 0; min-height: 48px;">
+                    <div class="item-left" style="display: flex; align-items: center; flex: 1; min-width: 0; margin-right: 12px;">
+                        <span style="display:inline-block; width:24px; flex-shrink: 0; color:#64748b; font-size:13px; font-weight:bold; font-style:italic;">#3</span>
+                        <span class="col-id" style="width:60px; flex-shrink: 0; font-family: monospace; color:#475569; font-size: 14px;">AMD US</span>
+                        <div class="name-wrapper" style="flex: 1; min-width: 0;">
+                            <span class="col-name" style="font-weight:700; color:#1e293b; font-size: 13px; white-space: normal; word-break: break-word; line-height: 1.3; display: block;">ADVANCED MICRO DEVICES.amd us(超微半導體公司)</span>
+                        </div>
                     </div>
-                    <span class="col-qty" style="color:#0ea5e9; font-weight:800; font-size: 15px;">4.49%</span>
+                    <span class="col-qty" style="flex-shrink: 0; color:#0ea5e9; font-weight:800; font-size: 14px;">4.49%</span>
                 </li>
                 
-                <li class="list-item" style="border: 1px solid #e2e8f0; border-radius: 6px; padding: 10px 16px; display: flex; justify-content: space-between; align-items: center; background-color: #fff; margin-bottom: 0;">
-                    <div class="item-left" style="display: flex; align-items: center;">
-                        <span style="display:inline-block; width:28px; color:#64748b; font-size:14px; font-weight:bold; font-style:italic;">#4</span>
-                        <span class="col-id" style="width:65px; font-family: monospace; color:#475569;">SNDK US</span>
-                        <div class="name-wrapper"><span class="col-name" style="font-weight:700; color:#1e293b;">SANDISK CORP</span></div>
+                <li class="list-item" style="border: 1px solid #e2e8f0; border-radius: 6px; padding: 10px 12px; display: flex; justify-content: space-between; align-items: center; background-color: #fff; margin-bottom: 0; min-height: 48px;">
+                    <div class="item-left" style="display: flex; align-items: center; flex: 1; min-width: 0; margin-right: 12px;">
+                        <span style="display:inline-block; width:24px; flex-shrink: 0; color:#64748b; font-size:13px; font-weight:bold; font-style:italic;">#4</span>
+                        <span class="col-id" style="width:60px; flex-shrink: 0; font-family: monospace; color:#475569; font-size: 14px;">SNDK US</span>
+                        <div class="name-wrapper" style="flex: 1; min-width: 0;">
+                            <span class="col-name" style="font-weight:700; color:#1e293b; font-size: 13px; white-space: normal; word-break: break-word; line-height: 1.3; display: block;">SANDISK CORP</span>
+                        </div>
                     </div>
-                    <span class="col-qty" style="color:#0ea5e9; font-weight:800; font-size: 15px;">4.49%</span>
+                    <span class="col-qty" style="flex-shrink: 0; color:#0ea5e9; font-weight:800; font-size: 14px;">4.49%</span>
                 </li>
                 
-                <li class="list-item" style="border: 1px solid #e2e8f0; border-radius: 6px; padding: 10px 16px; display: flex; justify-content: space-between; align-items: center; background-color: #fff; margin-bottom: 0;">
-                    <div class="item-left" style="display: flex; align-items: center;">
-                        <span style="display:inline-block; width:28px; color:#64748b; font-size:14px; font-weight:bold; font-style:italic;">#5</span>
-                        <span class="col-id" style="width:65px; font-family: monospace; color:#475569;">2454</span>
-                        <div class="name-wrapper"><span class="col-name" style="font-weight:700; color:#1e293b;">聯發科</span></div>
+                <li class="list-item" style="border: 1px solid #e2e8f0; border-radius: 6px; padding: 10px 12px; display: flex; justify-content: space-between; align-items: center; background-color: #fff; margin-bottom: 0; min-height: 48px;">
+                    <div class="item-left" style="display: flex; align-items: center; flex: 1; min-width: 0; margin-right: 12px;">
+                        <span style="display:inline-block; width:24px; flex-shrink: 0; color:#64748b; font-size:13px; font-weight:bold; font-style:italic;">#5</span>
+                        <span class="col-id" style="width:60px; flex-shrink: 0; font-family: monospace; color:#475569; font-size: 14px;">2454</span>
+                        <div class="name-wrapper" style="flex: 1; min-width: 0;">
+                            <span class="col-name" style="font-weight:700; color:#1e293b; font-size: 13px; white-space: normal; word-break: break-word; line-height: 1.3; display: block;">聯發科</span>
+                        </div>
                     </div>
-                    <span class="col-qty" style="color:#0ea5e9; font-weight:800; font-size: 15px;">3.84%</span>
+                    <span class="col-qty" style="flex-shrink: 0; color:#0ea5e9; font-weight:800; font-size: 14px;">3.84%</span>
                 </li>
                 
-                <li class="list-item" style="border: 1px solid #e2e8f0; border-radius: 6px; padding: 10px 16px; display: flex; justify-content: space-between; align-items: center; background-color: #fff; margin-bottom: 0;">
-                    <div class="item-left" style="display: flex; align-items: center;">
-                        <span style="display:inline-block; width:28px; color:#64748b; font-size:14px; font-weight:bold; font-style:italic;">#6</span>
-                        <span class="col-id" style="width:65px; font-family: monospace; color:#475569;">3037</span>
-                        <div class="name-wrapper"><span class="col-name" style="font-weight:700; color:#1e293b;">欣興</span></div>
+                <li class="list-item" style="border: 1px solid #e2e8f0; border-radius: 6px; padding: 10px 12px; display: flex; justify-content: space-between; align-items: center; background-color: #fff; margin-bottom: 0; min-height: 48px;">
+                    <div class="item-left" style="display: flex; align-items: center; flex: 1; min-width: 0; margin-right: 12px;">
+                        <span style="display:inline-block; width:24px; flex-shrink: 0; color:#64748b; font-size:13px; font-weight:bold; font-style:italic;">#6</span>
+                        <span class="col-id" style="width:60px; flex-shrink: 0; font-family: monospace; color:#475569; font-size: 14px;">3037</span>
+                        <div class="name-wrapper" style="flex: 1; min-width: 0;">
+                            <span class="col-name" style="font-weight:700; color:#1e293b; font-size: 13px; white-space: normal; word-break: break-word; line-height: 1.3; display: block;">欣興</span>
+                        </div>
                     </div>
-                    <span class="col-qty" style="color:#0ea5e9; font-weight:800; font-size: 15px;">3.83%</span>
+                    <span class="col-qty" style="flex-shrink: 0; color:#0ea5e9; font-weight:800; font-size: 14px;">3.83%</span>
                 </li>
                 
-                <li class="list-item" style="border: 1px solid #e2e8f0; border-radius: 6px; padding: 10px 16px; display: flex; justify-content: space-between; align-items: center; background-color: #fff; margin-bottom: 0;">
-                    <div class="item-left" style="display: flex; align-items: center;">
-                        <span style="display:inline-block; width:28px; color:#64748b; font-size:14px; font-weight:bold; font-style:italic;">#7</span>
-                        <span class="col-id" style="width:65px; font-family: monospace; color:#475569;">BE US</span>
-                        <div class="name-wrapper"><span class="col-name" style="font-weight:700; color:#1e293b;">BLOOM ENERGY CORP- A</span></div>
+                <li class="list-item" style="border: 1px solid #e2e8f0; border-radius: 6px; padding: 10px 12px; display: flex; justify-content: space-between; align-items: center; background-color: #fff; margin-bottom: 0; min-height: 48px;">
+                    <div class="item-left" style="display: flex; align-items: center; flex: 1; min-width: 0; margin-right: 12px;">
+                        <span style="display:inline-block; width:24px; flex-shrink: 0; color:#64748b; font-size:13px; font-weight:bold; font-style:italic;">#7</span>
+                        <span class="col-id" style="width:60px; flex-shrink: 0; font-family: monospace; color:#475569; font-size: 14px;">BE US</span>
+                        <div class="name-wrapper" style="flex: 1; min-width: 0;">
+                            <span class="col-name" style="font-weight:700; color:#1e293b; font-size: 13px; white-space: normal; word-break: break-word; line-height: 1.3; display: block;">BLOOM ENERGY CORP- A</span>
+                        </div>
                     </div>
-                    <span class="col-qty" style="color:#0ea5e9; font-weight:800; font-size: 15px;">3.71%</span>
+                    <span class="col-qty" style="flex-shrink: 0; color:#0ea5e9; font-weight:800; font-size: 14px;">3.71%</span>
                 </li>
                 
-                <li class="list-item" style="border: 1px solid #e2e8f0; border-radius: 6px; padding: 10px 16px; display: flex; justify-content: space-between; align-items: center; background-color: #fff; margin-bottom: 0;">
-                    <div class="item-left" style="display: flex; align-items: center;">
-                        <span style="display:inline-block; width:28px; color:#64748b; font-size:14px; font-weight:bold; font-style:italic;">#8</span>
-                        <span class="col-id" style="width:65px; font-family: monospace; color:#475569;">LITE US</span>
-                        <div class="name-wrapper"><span class="col-name" style="font-weight:700; color:#1e293b;">LUMENTUM HOLDINGS INC</span></div>
+                <li class="list-item" style="border: 1px solid #e2e8f0; border-radius: 6px; padding: 10px 12px; display: flex; justify-content: space-between; align-items: center; background-color: #fff; margin-bottom: 0; min-height: 48px;">
+                    <div class="item-left" style="display: flex; align-items: center; flex: 1; min-width: 0; margin-right: 12px;">
+                        <span style="display:inline-block; width:24px; flex-shrink: 0; color:#64748b; font-size:13px; font-weight:bold; font-style:italic;">#8</span>
+                        <span class="col-id" style="width:60px; flex-shrink: 0; font-family: monospace; color:#475569; font-size: 14px;">LITE US</span>
+                        <div class="name-wrapper" style="flex: 1; min-width: 0;">
+                            <span class="col-name" style="font-weight:700; color:#1e293b; font-size: 13px; white-space: normal; word-break: break-word; line-height: 1.3; display: block;">LUMENTUM HOLDINGS INC</span>
+                        </div>
                     </div>
-                    <span class="col-qty" style="color:#0ea5e9; font-weight:800; font-size: 15px;">3.69%</span>
+                    <span class="col-qty" style="flex-shrink: 0; color:#0ea5e9; font-weight:800; font-size: 14px;">3.69%</span>
                 </li>
                 
-                <li class="list-item" style="border: 1px solid #e2e8f0; border-radius: 6px; padding: 10px 16px; display: flex; justify-content: space-between; align-items: center; background-color: #fff; margin-bottom: 0;">
-                    <div class="item-left" style="display: flex; align-items: center;">
-                        <span style="display:inline-block; width:28px; color:#64748b; font-size:14px; font-weight:bold; font-style:italic;">#9</span>
-                        <span class="col-id" style="width:65px; font-family: monospace; color:#475569;">2383</span>
-                        <div class="name-wrapper"><span class="col-name" style="font-weight:700; color:#1e293b;">台光電</span></div>
+                <li class="list-item" style="border: 1px solid #e2e8f0; border-radius: 6px; padding: 10px 12px; display: flex; justify-content: space-between; align-items: center; background-color: #fff; margin-bottom: 0; min-height: 48px;">
+                    <div class="item-left" style="display: flex; align-items: center; flex: 1; min-width: 0; margin-right: 12px;">
+                        <span style="display:inline-block; width:24px; flex-shrink: 0; color:#64748b; font-size:13px; font-weight:bold; font-style:italic;">#9</span>
+                        <span class="col-id" style="width:60px; flex-shrink: 0; font-family: monospace; color:#475569; font-size: 14px;">2383</span>
+                        <div class="name-wrapper" style="flex: 1; min-width: 0;">
+                            <span class="col-name" style="font-weight:700; color:#1e293b; font-size: 13px; white-space: normal; word-break: break-word; line-height: 1.3; display: block;">台光電</span>
+                        </div>
                     </div>
-                    <span class="col-qty" style="color:#0ea5e9; font-weight:800; font-size: 15px;">3.11%</span>
+                    <span class="col-qty" style="flex-shrink: 0; color:#0ea5e9; font-weight:800; font-size: 14px;">3.11%</span>
                 </li>
                 
-                <li class="list-item" style="border: 1px solid #e2e8f0; border-radius: 6px; padding: 10px 16px; display: flex; justify-content: space-between; align-items: center; background-color: #fff; margin-bottom: 0;">
-                    <div class="item-left" style="display: flex; align-items: center;">
-                        <span style="display:inline-block; width:28px; color:#64748b; font-size:14px; font-weight:bold; font-style:italic;">#10</span>
-                        <span class="col-id" style="width:65px; font-family: monospace; color:#475569;">6787 JP</span>
-                        <div class="name-wrapper"><span class="col-name" style="font-weight:700; color:#1e293b;">MEIKO ELECTRONICS CO LTD</span></div>
+                <li class="list-item" style="border: 1px solid #e2e8f0; border-radius: 6px; padding: 10px 12px; display: flex; justify-content: space-between; align-items: center; background-color: #fff; margin-bottom: 0; min-height: 48px;">
+                    <div class="item-left" style="display: flex; align-items: center; flex: 1; min-width: 0; margin-right: 12px;">
+                        <span style="display:inline-block; width:24px; flex-shrink: 0; color:#64748b; font-size:13px; font-weight:bold; font-style:italic;">#10</span>
+                        <span class="col-id" style="width:60px; flex-shrink: 0; font-family: monospace; color:#475569; font-size: 14px;">6787 JP</span>
+                        <div class="name-wrapper" style="flex: 1; min-width: 0;">
+                            <span class="col-name" style="font-weight:700; color:#1e293b; font-size: 13px; white-space: normal; word-break: break-word; line-height: 1.3; display: block;">MEIKO ELECTRONICS CO LTD</span>
+                        </div>
                     </div>
-                    <span class="col-qty" style="color:#0ea5e9; font-weight:800; font-size: 15px;">3.09%</span>
+                    <span class="col-qty" style="flex-shrink: 0; color:#0ea5e9; font-weight:800; font-size: 14px;">3.09%</span>
                 </li>
                 
-                <li class="list-item" style="border: 1px solid #e2e8f0; border-radius: 6px; padding: 10px 16px; display: flex; justify-content: space-between; align-items: center; background-color: #fff; margin-bottom: 0;">
-                    <div class="item-left" style="display: flex; align-items: center;">
-                        <span style="display:inline-block; width:28px; color:#64748b; font-size:14px; font-weight:bold; font-style:italic;">#11</span>
-                        <span class="col-id" style="width:65px; font-family: monospace; color:#475569;">285A JP</span>
-                        <div class="name-wrapper"><span class="col-name" style="font-weight:700; color:#1e293b;">KIOXIA HOLDINGS CORP</span></div>
+                <li class="list-item" style="border: 1px solid #e2e8f0; border-radius: 6px; padding: 10px 12px; display: flex; justify-content: space-between; align-items: center; background-color: #fff; margin-bottom: 0; min-height: 48px;">
+                    <div class="item-left" style="display: flex; align-items: center; flex: 1; min-width: 0; margin-right: 12px;">
+                        <span style="display:inline-block; width:24px; flex-shrink: 0; color:#64748b; font-size:13px; font-weight:bold; font-style:italic;">#11</span>
+                        <span class="col-id" style="width:60px; flex-shrink: 0; font-family: monospace; color:#475569; font-size: 14px;">285A JP</span>
+                        <div class="name-wrapper" style="flex: 1; min-width: 0;">
+                            <span class="col-name" style="font-weight:700; color:#1e293b; font-size: 13px; white-space: normal; word-break: break-word; line-height: 1.3; display: block;">KIOXIA HOLDINGS CORP</span>
+                        </div>
                     </div>
-                    <span class="col-qty" style="color:#0ea5e9; font-weight:800; font-size: 15px;">2.68%</span>
+                    <span class="col-qty" style="flex-shrink: 0; color:#0ea5e9; font-weight:800; font-size: 14px;">2.68%</span>
                 </li>
                 
-                <li class="list-item" style="border: 1px solid #e2e8f0; border-radius: 6px; padding: 10px 16px; display: flex; justify-content: space-between; align-items: center; background-color: #fff; margin-bottom: 0;">
-                    <div class="item-left" style="display: flex; align-items: center;">
-                        <span style="display:inline-block; width:28px; color:#64748b; font-size:14px; font-weight:bold; font-style:italic;">#12</span>
-                        <span class="col-id" style="width:65px; font-family: monospace; color:#475569;">5706 JP</span>
-                        <div class="name-wrapper"><span class="col-name" style="font-weight:700; color:#1e293b;">Mitsui Mining ＆ Smelting Co</span></div>
+                <li class="list-item" style="border: 1px solid #e2e8f0; border-radius: 6px; padding: 10px 12px; display: flex; justify-content: space-between; align-items: center; background-color: #fff; margin-bottom: 0; min-height: 48px;">
+                    <div class="item-left" style="display: flex; align-items: center; flex: 1; min-width: 0; margin-right: 12px;">
+                        <span style="display:inline-block; width:24px; flex-shrink: 0; color:#64748b; font-size:13px; font-weight:bold; font-style:italic;">#12</span>
+                        <span class="col-id" style="width:60px; flex-shrink: 0; font-family: monospace; color:#475569; font-size: 14px;">5706 JP</span>
+                        <div class="name-wrapper" style="flex: 1; min-width: 0;">
+                            <span class="col-name" style="font-weight:700; color:#1e293b; font-size: 13px; white-space: normal; word-break: break-word; line-height: 1.3; display: block;">Mitsui Mining ＆ Smelting Co</span>
+                        </div>
                     </div>
-                    <span class="col-qty" style="color:#0ea5e9; font-weight:800; font-size: 15px;">2.66%</span>
+                    <span class="col-qty" style="flex-shrink: 0; color:#0ea5e9; font-weight:800; font-size: 14px;">2.66%</span>
                 </li>
                 
-                <li class="list-item" style="border: 1px solid #e2e8f0; border-radius: 6px; padding: 10px 16px; display: flex; justify-content: space-between; align-items: center; background-color: #fff; margin-bottom: 0;">
-                    <div class="item-left" style="display: flex; align-items: center;">
-                        <span style="display:inline-block; width:28px; color:#64748b; font-size:14px; font-weight:bold; font-style:italic;">#13</span>
-                        <span class="col-id" style="width:65px; font-family: monospace; color:#475569;">4062 JP</span>
-                        <div class="name-wrapper"><span class="col-name" style="font-weight:700; color:#1e293b;">IBIDEN CO LTD</span></div>
+                <li class="list-item" style="border: 1px solid #e2e8f0; border-radius: 6px; padding: 10px 12px; display: flex; justify-content: space-between; align-items: center; background-color: #fff; margin-bottom: 0; min-height: 48px;">
+                    <div class="item-left" style="display: flex; align-items: center; flex: 1; min-width: 0; margin-right: 12px;">
+                        <span style="display:inline-block; width:24px; flex-shrink: 0; color:#64748b; font-size:13px; font-weight:bold; font-style:italic;">#13</span>
+                        <span class="col-id" style="width:60px; flex-shrink: 0; font-family: monospace; color:#475569; font-size: 14px;">4062 JP</span>
+                        <div class="name-wrapper" style="flex: 1; min-width: 0;">
+                            <span class="col-name" style="font-weight:700; color:#1e293b; font-size: 13px; white-space: normal; word-break: break-word; line-height: 1.3; display: block;">IBIDEN CO LTD</span>
+                        </div>
                     </div>
-                    <span class="col-qty" style="color:#0ea5e9; font-weight:800; font-size: 15px;">2.62%</span>
+                    <span class="col-qty" style="flex-shrink: 0; color:#0ea5e9; font-weight:800; font-size: 14px;">2.62%</span>
                 </li>
                 
-                <li class="list-item" style="border: 1px solid #e2e8f0; border-radius: 6px; padding: 10px 16px; display: flex; justify-content: space-between; align-items: center; background-color: #fff; margin-bottom: 0;">
-                    <div class="item-left" style="display: flex; align-items: center;">
-                        <span style="display:inline-block; width:28px; color:#64748b; font-size:14px; font-weight:bold; font-style:italic;">#14</span>
-                        <span class="col-id" style="width:65px; font-family: monospace; color:#475569;">5801 JP</span>
-                        <div class="name-wrapper"><span class="col-name" style="font-weight:700; color:#1e293b;">FURUKAWA ELECTRIC CO LTD</span></div>
+                <li class="list-item" style="border: 1px solid #e2e8f0; border-radius: 6px; padding: 10px 12px; display: flex; justify-content: space-between; align-items: center; background-color: #fff; margin-bottom: 0; min-height: 48px;">
+                    <div class="item-left" style="display: flex; align-items: center; flex: 1; min-width: 0; margin-right: 12px;">
+                        <span style="display:inline-block; width:24px; flex-shrink: 0; color:#64748b; font-size:13px; font-weight:bold; font-style:italic;">#14</span>
+                        <span class="col-id" style="width:60px; flex-shrink: 0; font-family: monospace; color:#475569; font-size: 14px;">5801 JP</span>
+                        <div class="name-wrapper" style="flex: 1; min-width: 0;">
+                            <span class="col-name" style="font-weight:700; color:#1e293b; font-size: 13px; white-space: normal; word-break: break-word; line-height: 1.3; display: block;">FURUKAWA ELECTRIC CO LTD</span>
+                        </div>
                     </div>
-                    <span class="col-qty" style="color:#0ea5e9; font-weight:800; font-size: 15px;">2.62%</span>
+                    <span class="col-qty" style="flex-shrink: 0; color:#0ea5e9; font-weight:800; font-size: 14px;">2.62%</span>
                 </li>
                 
-                <li class="list-item" style="border: 1px solid #e2e8f0; border-radius: 6px; padding: 10px 16px; display: flex; justify-content: space-between; align-items: center; background-color: #fff; margin-bottom: 0;">
-                    <div class="item-left" style="display: flex; align-items: center;">
-                        <span style="display:inline-block; width:28px; color:#64748b; font-size:14px; font-weight:bold; font-style:italic;">#15</span>
-                        <span class="col-id" style="width:65px; font-family: monospace; color:#475569;">IFX GY</span>
-                        <div class="name-wrapper"><span class="col-name" style="font-weight:700; color:#1e293b;">INFINEON TECHNOLOGIES AG</span></div>
+                <li class="list-item" style="border: 1px solid #e2e8f0; border-radius: 6px; padding: 10px 12px; display: flex; justify-content: space-between; align-items: center; background-color: #fff; margin-bottom: 0; min-height: 48px;">
+                    <div class="item-left" style="display: flex; align-items: center; flex: 1; min-width: 0; margin-right: 12px;">
+                        <span style="display:inline-block; width:24px; flex-shrink: 0; color:#64748b; font-size:13px; font-weight:bold; font-style:italic;">#15</span>
+                        <span class="col-id" style="width:60px; flex-shrink: 0; font-family: monospace; color:#475569; font-size: 14px;">IFX GY</span>
+                        <div class="name-wrapper" style="flex: 1; min-width: 0;">
+                            <span class="col-name" style="font-weight:700; color:#1e293b; font-size: 13px; white-space: normal; word-break: break-word; line-height: 1.3; display: block;">INFINEON TECHNOLOGIES AG</span>
+                        </div>
                     </div>
-                    <span class="col-qty" style="color:#0ea5e9; font-weight:800; font-size: 15px;">2.49%</span>
+                    <span class="col-qty" style="flex-shrink: 0; color:#0ea5e9; font-weight:800; font-size: 14px;">2.49%</span>
                 </li>
                 
-                <li class="list-item" style="border: 1px solid #e2e8f0; border-radius: 6px; padding: 10px 16px; display: flex; justify-content: space-between; align-items: center; background-color: #fff; margin-bottom: 0;">
-                    <div class="item-left" style="display: flex; align-items: center;">
-                        <span style="display:inline-block; width:28px; color:#64748b; font-size:14px; font-weight:bold; font-style:italic;">#16</span>
-                        <span class="col-id" style="width:65px; font-family: monospace; color:#475569;">MRVL US</span>
-                        <div class="name-wrapper"><span class="col-name" style="font-weight:700; color:#1e293b;">MARVELL TECHNOLOGY INC</span></div>
+                <li class="list-item" style="border: 1px solid #e2e8f0; border-radius: 6px; padding: 10px 12px; display: flex; justify-content: space-between; align-items: center; background-color: #fff; margin-bottom: 0; min-height: 48px;">
+                    <div class="item-left" style="display: flex; align-items: center; flex: 1; min-width: 0; margin-right: 12px;">
+                        <span style="display:inline-block; width:24px; flex-shrink: 0; color:#64748b; font-size:13px; font-weight:bold; font-style:italic;">#16</span>
+                        <span class="col-id" style="width:60px; flex-shrink: 0; font-family: monospace; color:#475569; font-size: 14px;">MRVL US</span>
+                        <div class="name-wrapper" style="flex: 1; min-width: 0;">
+                            <span class="col-name" style="font-weight:700; color:#1e293b; font-size: 13px; white-space: normal; word-break: break-word; line-height: 1.3; display: block;">MARVELL TECHNOLOGY INC</span>
+                        </div>
                     </div>
-                    <span class="col-qty" style="color:#0ea5e9; font-weight:800; font-size: 15px;">2.36%</span>
+                    <span class="col-qty" style="flex-shrink: 0; color:#0ea5e9; font-weight:800; font-size: 14px;">2.36%</span>
                 </li>
                 
-                <li class="list-item" style="border: 1px solid #e2e8f0; border-radius: 6px; padding: 10px 16px; display: flex; justify-content: space-between; align-items: center; background-color: #fff; margin-bottom: 0;">
-                    <div class="item-left" style="display: flex; align-items: center;">
-                        <span style="display:inline-block; width:28px; color:#64748b; font-size:14px; font-weight:bold; font-style:italic;">#17</span>
-                        <span class="col-id" style="width:65px; font-family: monospace; color:#475569;">WDC US</span>
-                        <div class="name-wrapper"><span class="col-name" style="font-weight:700; color:#1e293b;">WESTERN DIGITAL CORP</span></div>
+                <li class="list-item" style="border: 1px solid #e2e8f0; border-radius: 6px; padding: 10px 12px; display: flex; justify-content: space-between; align-items: center; background-color: #fff; margin-bottom: 0; min-height: 48px;">
+                    <div class="item-left" style="display: flex; align-items: center; flex: 1; min-width: 0; margin-right: 12px;">
+                        <span style="display:inline-block; width:24px; flex-shrink: 0; color:#64748b; font-size:13px; font-weight:bold; font-style:italic;">#17</span>
+                        <span class="col-id" style="width:60px; flex-shrink: 0; font-family: monospace; color:#475569; font-size: 14px;">WDC US</span>
+                        <div class="name-wrapper" style="flex: 1; min-width: 0;">
+                            <span class="col-name" style="font-weight:700; color:#1e293b; font-size: 13px; white-space: normal; word-break: break-word; line-height: 1.3; display: block;">WESTERN DIGITAL CORP</span>
+                        </div>
                     </div>
-                    <span class="col-qty" style="color:#0ea5e9; font-weight:800; font-size: 15px;">2.25%</span>
+                    <span class="col-qty" style="flex-shrink: 0; color:#0ea5e9; font-weight:800; font-size: 14px;">2.25%</span>
                 </li>
                 
-                <li class="list-item" style="border: 1px solid #e2e8f0; border-radius: 6px; padding: 10px 16px; display: flex; justify-content: space-between; align-items: center; background-color: #fff; margin-bottom: 0;">
-                    <div class="item-left" style="display: flex; align-items: center;">
-                        <span style="display:inline-block; width:28px; color:#64748b; font-size:14px; font-weight:bold; font-style:italic;">#18</span>
-                        <span class="col-id" style="width:65px; font-family: monospace; color:#475569;">CIEN US</span>
-                        <div class="name-wrapper"><span class="col-name" style="font-weight:700; color:#1e293b;">CIENA CORP</span></div>
+                <li class="list-item" style="border: 1px solid #e2e8f0; border-radius: 6px; padding: 10px 12px; display: flex; justify-content: space-between; align-items: center; background-color: #fff; margin-bottom: 0; min-height: 48px;">
+                    <div class="item-left" style="display: flex; align-items: center; flex: 1; min-width: 0; margin-right: 12px;">
+                        <span style="display:inline-block; width:24px; flex-shrink: 0; color:#64748b; font-size:13px; font-weight:bold; font-style:italic;">#18</span>
+                        <span class="col-id" style="width:60px; flex-shrink: 0; font-family: monospace; color:#475569; font-size: 14px;">CIEN US</span>
+                        <div class="name-wrapper" style="flex: 1; min-width: 0;">
+                            <span class="col-name" style="font-weight:700; color:#1e293b; font-size: 13px; white-space: normal; word-break: break-word; line-height: 1.3; display: block;">CIENA CORP</span>
+                        </div>
                     </div>
-                    <span class="col-qty" style="color:#0ea5e9; font-weight:800; font-size: 15px;">2.25%</span>
+                    <span class="col-qty" style="flex-shrink: 0; color:#0ea5e9; font-weight:800; font-size: 14px;">2.25%</span>
                 </li>
                 
-                <li class="list-item" style="border: 1px solid #e2e8f0; border-radius: 6px; padding: 10px 16px; display: flex; justify-content: space-between; align-items: center; background-color: #fff; margin-bottom: 0;">
-                    <div class="item-left" style="display: flex; align-items: center;">
-                        <span style="display:inline-block; width:28px; color:#64748b; font-size:14px; font-weight:bold; font-style:italic;">#19</span>
-                        <span class="col-id" style="width:65px; font-family: monospace; color:#475569;">2330</span>
-                        <div class="name-wrapper"><span class="col-name" style="font-weight:700; color:#1e293b;">台積電</span></div>
+                <li class="list-item" style="border: 1px solid #e2e8f0; border-radius: 6px; padding: 10px 12px; display: flex; justify-content: space-between; align-items: center; background-color: #fff; margin-bottom: 0; min-height: 48px;">
+                    <div class="item-left" style="display: flex; align-items: center; flex: 1; min-width: 0; margin-right: 12px;">
+                        <span style="display:inline-block; width:24px; flex-shrink: 0; color:#64748b; font-size:13px; font-weight:bold; font-style:italic;">#19</span>
+                        <span class="col-id" style="width:60px; flex-shrink: 0; font-family: monospace; color:#475569; font-size: 14px;">2330</span>
+                        <div class="name-wrapper" style="flex: 1; min-width: 0;">
+                            <span class="col-name" style="font-weight:700; color:#1e293b; font-size: 13px; white-space: normal; word-break: break-word; line-height: 1.3; display: block;">台積電</span>
+                        </div>
                     </div>
-                    <span class="col-qty" style="color:#0ea5e9; font-weight:800; font-size: 15px;">2.18%</span>
+                    <span class="col-qty" style="flex-shrink: 0; color:#0ea5e9; font-weight:800; font-size: 14px;">2.18%</span>
                 </li>
                 
-                <li class="list-item" style="border: 1px solid #e2e8f0; border-radius: 6px; padding: 10px 16px; display: flex; justify-content: space-between; align-items: center; background-color: #fff; margin-bottom: 0;">
-                    <div class="item-left" style="display: flex; align-items: center;">
-                        <span style="display:inline-block; width:28px; color:#64748b; font-size:14px; font-weight:bold; font-style:italic;">#20</span>
-                        <span class="col-id" style="width:65px; font-family: monospace; color:#475569;">6997 JP</span>
-                        <div class="name-wrapper"><span class="col-name" style="font-weight:700; color:#1e293b;">NIPPON CHEMI-CON CORP</span></div>
+                <li class="list-item" style="border: 1px solid #e2e8f0; border-radius: 6px; padding: 10px 12px; display: flex; justify-content: space-between; align-items: center; background-color: #fff; margin-bottom: 0; min-height: 48px;">
+                    <div class="item-left" style="display: flex; align-items: center; flex: 1; min-width: 0; margin-right: 12px;">
+                        <span style="display:inline-block; width:24px; flex-shrink: 0; color:#64748b; font-size:13px; font-weight:bold; font-style:italic;">#20</span>
+                        <span class="col-id" style="width:60px; flex-shrink: 0; font-family: monospace; color:#475569; font-size: 14px;">6997 JP</span>
+                        <div class="name-wrapper" style="flex: 1; min-width: 0;">
+                            <span class="col-name" style="font-weight:700; color:#1e293b; font-size: 13px; white-space: normal; word-break: break-word; line-height: 1.3; display: block;">NIPPON CHEMI-CON CORP</span>
+                        </div>
                     </div>
-                    <span class="col-qty" style="color:#0ea5e9; font-weight:800; font-size: 15px;">2.16%</span>
+                    <span class="col-qty" style="flex-shrink: 0; color:#0ea5e9; font-weight:800; font-size: 14px;">2.16%</span>
                 </li>
                 
                 </ul>

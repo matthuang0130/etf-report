@@ -1,4 +1,4 @@
-print("🚀 終極完全體啟動：自動清洗 + 自動比對差額 + 前 20 大持股解析 + 基金規模探測 + 網頁產出...")
+print("🚀 終極完全體啟動：自動清洗 + 自動比對差額 + 前 20 大持股解析 + 基金規模探測 + 智慧日期摺疊 + UI完美優化...")
 import pandas as pd
 import os
 import glob
@@ -13,30 +13,22 @@ ETF_MAPPING = {
 }
 
 def extract_fund_size(df):
-    """ 🌟 升級版：十字掃描雷達，支援復華的「上下換行」排版格式 """
+    """ 十字掃描雷達，支援各種排版的基金規模 """
     try:
         for i in range(min(20, len(df))):
             row_vals = [str(x).strip().replace(',', '') for x in df.iloc[i].values if pd.notna(x)]
             row_str = " ".join(row_vals)
             
-            # 尋找關鍵字
             if any(keyword in row_str for keyword in ['規模', '淨資產', '資產價值', '發行餘額', '資產總額', '總資產', '淨值總額', '基金資產', '總金額']):
-                
-                # 1. 先嘗試在「同一行」找數字
                 for val_str in row_vals:
                     try:
                         clean_val = re.sub(r'[^\d\.\-eE]', '', val_str)
                         if not clean_val: continue
                         val = float(clean_val)
-                        
-                        if val > 10000000:
-                            return f"{val / 100000000:.2f} 億"
-                        elif 0 < val < 100000 and '億' in row_str:
-                            return f"{val:.2f} 億"
-                    except:
-                        pass
+                        if val > 10000000: return f"{val / 100000000:.2f} 億"
+                        elif 0 < val < 100000 and '億' in row_str: return f"{val:.2f} 億"
+                    except: pass
                 
-                # 2. 如果同一行沒找到，就往下看「下一行」 (專武：復華排版)
                 if i + 1 < len(df):
                     next_row_vals = [str(x).strip().replace(',', '') for x in df.iloc[i+1].values if pd.notna(x)]
                     for val_str in next_row_vals:
@@ -44,11 +36,8 @@ def extract_fund_size(df):
                             clean_val = re.sub(r'[^\d\.\-eE]', '', val_str)
                             if not clean_val: continue
                             val = float(clean_val)
-                            
-                            if val > 10000000:
-                                return f"{val / 100000000:.2f} 億"
-                        except:
-                            pass
+                            if val > 10000000: return f"{val / 100000000:.2f} 億"
+                        except: pass
     except Exception:
         pass
     return ""
@@ -61,8 +50,7 @@ def find_header_row(df):
     return -1
 
 def smart_read_and_clean(filepath):
-    if os.path.basename(filepath).startswith('~$'):
-        return None, ""
+    if os.path.basename(filepath).startswith('~$'): return None, ""
 
     fund_size = ""
     try:
@@ -71,20 +59,15 @@ def smart_read_and_clean(filepath):
             except: df_raw = pd.read_csv(filepath, encoding='big5', header=None)
             sheets = {'Sheet1': df_raw}
         else:
-            try:
-                sheets = pd.read_excel(filepath, sheet_name=None, header=None)
+            try: sheets = pd.read_excel(filepath, sheet_name=None, header=None)
             except Exception as e:
-                # 破解富邦的「假 Excel 真 HTML」護盾
-                try:
-                    dfs = pd.read_html(filepath, encoding='utf-8', header=None)
-                except:
-                    dfs = pd.read_html(filepath, encoding='big5', header=None)
+                try: dfs = pd.read_html(filepath, encoding='utf-8', header=None)
+                except: dfs = pd.read_html(filepath, encoding='big5', header=None)
                 sheets = {f'Sheet{i}': df for i, df in enumerate(dfs)}
 
         all_clean_data = []
         for sheet_name, df in sheets.items():
-            if not fund_size:
-                fund_size = extract_fund_size(df)
+            if not fund_size: fund_size = extract_fund_size(df)
 
             header_idx = find_header_row(df)
             if header_idx == -1: continue 
@@ -95,14 +78,10 @@ def smart_read_and_clean(filepath):
             col_code, col_name, col_qty, col_weight = None, None, None, None
             for c in df.columns:
                 c_str = str(c).lower().strip()
-                if not col_code and ('代' in c_str or 'code' in c_str): 
-                    col_code = c
-                elif not col_name and ('名' in c_str or 'name' in c_str): 
-                    col_name = c
-                elif not col_qty and ('股' in c_str or '張' in c_str or 'qty' in c_str) and '權重' not in c_str and '%' not in c_str: 
-                    col_qty = c
-                elif not col_weight and ('權' in c_str or '比' in c_str or '%' in c_str or 'weight' in c_str): 
-                    col_weight = c
+                if not col_code and ('代' in c_str or 'code' in c_str): col_code = c
+                elif not col_name and ('名' in c_str or 'name' in c_str): col_name = c
+                elif not col_qty and ('股' in c_str or '張' in c_str or 'qty' in c_str) and '權重' not in c_str and '%' not in c_str: col_qty = c
+                elif not col_weight and ('權' in c_str or '比' in c_str or '%' in c_str or 'weight' in c_str): col_weight = c
 
             if not (col_code and col_qty): continue
 
@@ -118,11 +97,7 @@ def smart_read_and_clean(filepath):
             if col_weight:
                 clean_df = clean_df.rename(columns={col_weight: 'Weight'})
                 clean_df['Weight'] = pd.to_numeric(clean_df['Weight'].astype(str).str.replace('%', '').str.replace(',', '').str.replace('"', ''), errors='coerce').fillna(0)
-                
-                # 🌟 新增：復華比例防護 (小數點自動校正)
-                # 如果該投信的權重是用小數點 (總和會小於等於 2)，就自動幫它乘以 100 變回百分比
-                if 0 < clean_df['Weight'].sum() <= 2:
-                    clean_df['Weight'] = clean_df['Weight'] * 100
+                if 0 < clean_df['Weight'].sum() <= 2: clean_df['Weight'] = clean_df['Weight'] * 100
             else:
                 clean_df['Weight'] = 0.0
 
@@ -181,14 +156,12 @@ def generate():
         
         for etf_code, dates_files in sorted(etf_history.items()):
             if target_date not in dates_files or previous_date not in dates_files:
-                print(f"    ⏭️ 略過 {etf_code}：因為缺乏兩天的完整檔案。")
                 continue 
                 
             res_today = smart_read_and_clean(dates_files[target_date])
             res_yest = smart_read_and_clean(dates_files[previous_date])
             
             if res_today[0] is None or res_yest[0] is None: 
-                print(f"    ❌ 清洗失敗 {etf_code}：無法解析檔案內容。")
                 etf_name = ETF_MAPPING.get(etf_code, "其他投信成分股")
                 etf_blocks_html += f'''
                 <div class="etf-section">
@@ -216,13 +189,15 @@ def generate():
                 weight_str = f"{row.Weight:.2f}%" if row.Weight > 0 else f"{int(row.Qty):,} 股"
                 
                 top20_html += f'''
-                <li class="list-item" style="border: 1px solid #e2e8f0; border-radius: 6px; padding: 10px 16px; display: flex; justify-content: space-between; align-items: center; background-color: #fff; margin-bottom: 0;">
-                    <div class="item-left" style="display: flex; align-items: center;">
-                        <span style="display:inline-block; width:28px; color:#64748b; font-size:14px; font-weight:bold; font-style:italic;">#{rank}</span>
-                        <span class="col-id" style="width:65px; font-family: monospace; color:#475569;">{code_str}</span>
-                        <div class="name-wrapper"><span class="col-name" style="font-weight:700; color:#1e293b;">{name_str}</span></div>
+                <li class="list-item" style="border: 1px solid #e2e8f0; border-radius: 6px; padding: 10px 12px; display: flex; justify-content: space-between; align-items: center; background-color: #fff; margin-bottom: 0; min-height: 48px;">
+                    <div class="item-left" style="display: flex; align-items: center; flex: 1; min-width: 0; margin-right: 12px;">
+                        <span style="display:inline-block; width:24px; flex-shrink: 0; color:#64748b; font-size:13px; font-weight:bold; font-style:italic;">#{rank}</span>
+                        <span class="col-id" style="width:60px; flex-shrink: 0; font-family: monospace; color:#475569; font-size: 14px;">{code_str}</span>
+                        <div class="name-wrapper" style="flex: 1; min-width: 0;">
+                            <span class="col-name" style="font-weight:700; color:#1e293b; font-size: 13px; white-space: normal; word-break: break-word; line-height: 1.3; display: block;">{name_str}</span>
+                        </div>
                     </div>
-                    <span class="col-qty" style="color:#0ea5e9; font-weight:800; font-size: 15px;">{weight_str}</span>
+                    <span class="col-qty" style="flex-shrink: 0; color:#0ea5e9; font-weight:800; font-size: 14px;">{weight_str}</span>
                 </li>
                 '''
             
@@ -278,9 +253,14 @@ def generate():
                 name_display = f"<span style='color: #ef4444; font-weight: bold; font-size: 12px; margin-right: 4px;'>[新進]</span>{row['Name']}" if is_new_entry else row['Name']
 
                 item_html = f'''
-                <li class="list-item">
-                    <div class="item-left"><span class="col-id">{code_str}</span><div class="name-wrapper"><span class="col-name">{name_display}</span></div></div>
-                    <span class="col-qty {'val-buy' if is_buy else 'val-sell'}">{qty_str}</span>
+                <li class="list-item" style="display: flex; align-items: center; min-height: 40px;">
+                    <div class="item-left" style="display: flex; align-items: center; flex: 1; min-width: 0;">
+                        <span class="col-id" style="flex-shrink: 0; width: 50px;">{code_str}</span>
+                        <div class="name-wrapper" style="flex: 1; min-width: 0; margin-right: 10px;">
+                            <span class="col-name" style="white-space: normal; word-break: break-word; line-height: 1.3; display: block;">{name_display}</span>
+                        </div>
+                    </div>
+                    <span class="col-qty {'val-buy' if is_buy else 'val-sell'}" style="flex-shrink: 0;">{qty_str}</span>
                 </li>
                 '''
                 if is_buy:
@@ -315,11 +295,37 @@ def generate():
         if etf_blocks_html == "":
             etf_blocks_html = '<div style="color:#8898aa; padding: 30px; text-align:center; font-style:italic;">今日各檔 ETF 無成分股變動，或資料不足。</div>'
 
-        menu_html = '<div class="date-menu">'
-        for d in sorted_dates[:-1]: 
+        # 🌟 痛點破解：徹底移除 Focus 虛線框，升級柔和陰影選單
+        menu_html = '<div class="date-menu" style="display: flex; flex-wrap: wrap; gap: 8px; align-items: center; position: relative; z-index: 50;">'
+        visible_count = 5
+        
+        for idx, d in enumerate(sorted_dates[:-1]): 
             display_date = f"{d[4:6]}/{d[6:8]}"
             active_class = "active" if d == target_date else ""
-            menu_html += f'<a href="{d}.html" class="menu-btn {active_class}">{display_date}</a>'
+            btn_html = f'<a href="{d}.html" class="menu-btn {active_class}">{display_date}</a>'
+            
+            if idx < visible_count:
+                menu_html += btn_html
+            elif idx == visible_count:
+                menu_html += f'''
+                <style>
+                    details > summary {{ list-style: none; outline: none !important; user-select: none; -webkit-tap-highlight-color: transparent; cursor: pointer; background-color: #f8fafc; border: 1px solid #94a3b8; color: #475569; padding: 6px 12px; border-radius: 20px; font-size: 14px; font-weight: bold; transition: all 0.2s; }}
+                    details > summary::-webkit-details-marker {{ display: none; }}
+                    details > summary:focus, details > summary:active, details > summary:focus-visible {{ outline: none !important; box-shadow: none !important; border-color: #94a3b8; }}
+                    details[open] > summary {{ background-color: #e2e8f0; color: #0f172a; }}
+                    .more-dates-dropdown {{ position: absolute; top: 100%; left: 0; margin-top: 8px; background: #ffffff; border: 1px solid #e2e8f0; border-radius: 12px; box-shadow: 0 10px 25px -5px rgba(0,0,0,0.1), 0 8px 10px -6px rgba(0,0,0,0.1); padding: 16px; display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; z-index: 100; width: max-content; min-width: 320px; }}
+                    @media (max-width: 600px) {{ .more-dates-dropdown {{ grid-template-columns: repeat(3, 1fr); min-width: 280px; left: 0;}} }}
+                </style>
+                <details style="position: relative;">
+                    <summary>歷史紀錄 ▾</summary>
+                    <div class="more-dates-dropdown">
+                '''
+                menu_html += btn_html
+            else:
+                menu_html += btn_html
+
+        if len(sorted_dates[:-1]) > visible_count:
+            menu_html += '</div></details>'
         menu_html += '</div>'
 
         full_page = menu_html + etf_blocks_html
