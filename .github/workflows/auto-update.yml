@@ -1,11 +1,11 @@
-name: 🤖 每日自動更新 ETF 報表
+name: 🤖 每日手動更新 ETF 報表
 
+# 🌟 修改這裡：移除 schedule 定時排程，只保留手動觸發與 Git Push 備用觸發
 on:
-  schedule:
-    # 每週一至週五晚上 19:30 執行，六日放假
-    - cron: '30 19 * * 1-5'
-      timezone: 'Asia/Taipei'
-  workflow_dispatch: # 允許手動點擊觸發
+  workflow_dispatch: # 💡 開啟 GitHub 網頁上的「手動執行」淺綠色按鈕
+  push:
+    branches:
+      - main       # 💡 當您從本地電腦 Git Push 程式碼上來時，雲端也會自動順便跑一次
 
 permissions:
   contents: write
@@ -28,7 +28,7 @@ jobs:
       - name: 3. 安裝必備套件 (包含爬蟲與HTML解析所需)
         run: |
           python -m pip install --upgrade pip
-          # 🌟 補上了 lxml 套件，專門用來對付富邦的假 Excel
+          # 🌟 保留您原本爬蟲所需的所有專業套件（pandas, selenium 等），並維持 lxml 備戰
           pip install pandas openpyxl requests selenium webdriver-manager lxml
 
       - name: 4. 🤖 執行自動爬蟲抓取最新檔案
@@ -42,4 +42,5 @@ jobs:
           git config --local user.email "github-actions[bot]@users.noreply.github.com"
           git config --local user.name "github-actions[bot]"
           git add .
-          git diff --quiet && git diff --staged --quiet || (git commit -m "🤖 機器人自動抓檔與更新報表" && git pull --rebase && git push)
+          # 💡 智慧防呆：檢查有沒有新檔案。有新檔案才 Commit，沒新檔案就直接跳過，絕對不報錯
+          git diff --quiet && git diff --staged --quiet || (git commit -m "🤖 手動更新：同步最新 ETF 資料與優化版報表" && git pull --rebase && git push)

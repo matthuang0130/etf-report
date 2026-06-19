@@ -1,4 +1,4 @@
-print("🚀 終極完全體啟動：自動清洗 + 自動比對差額 + 前 20 大持股解析 + 基金規模探測 + 智慧日期摺疊 + UI完美優化...")
+print("🚀 終極完全體啟動：自動清洗 + 自動比對差額 + 前 20 大持股解析 + 基金規模探測 + 智慧日期摺疊 + 異步日期斷層免疫機制...")
 import pandas as pd
 import os
 import glob
@@ -140,34 +140,53 @@ def generate():
             print(f"📥 成功讀取待命檔案: {etf_code} [{date_str}]")
 
     sorted_dates = sorted(list(all_dates), reverse=True)
-    if len(sorted_dates) < 2:
-        print("⚠️ 警告：資料夾內至少需要『兩天』的檔案 才能計算買賣差額喔！")
+    
+    # 🌟 智慧預檢：找出哪些日期真正具備「至少一檔 ETF 可供比對」的有效報表日
+    valid_report_dates = []
+    for target_date in sorted_dates:
+        for etf_code, dates_files in etf_history.items():
+            if target_date in dates_files:
+                available_dates = sorted([d for d in dates_files.keys() if d <= target_date], reverse=True)
+                if len(available_dates) >= 2:
+                    valid_report_dates.append(target_date)
+                    break # 只要有一檔能算，這天就是有效報表日
+
+    if not valid_report_dates:
+        print("⚠️ 警告：資料夾內資料不足，無法計算任何持股差額。")
         return
 
     with open('templates/index.html', 'r', encoding='utf-8') as f:
         html_template = f.read()
 
-    for i in range(len(sorted_dates) - 1):
-        target_date = sorted_dates[i]
-        previous_date = sorted_dates[i+1]
-        print(f"\n🧮 正在比對 【{target_date}】 與 【{previous_date}】...")
+    # 以有效報表日為主體進行循環
+    for target_date in valid_report_dates:
+        print(f"\n🧮 正在處理 【{target_date}】 的各檔投信報表比對...")
         
         etf_blocks_html = ""
         
         for etf_code, dates_files in sorted(etf_history.items()):
-            if target_date not in dates_files or previous_date not in dates_files:
+            if target_date not in dates_files:
                 continue 
                 
+            # 🌟 核心修正：每檔 ETF 獨立向過去尋找自己的前一交易日，完美跨越每家投信不同的放假斷層！
+            available_dates = sorted([d for d in dates_files.keys() if d <= target_date], reverse=True)
+            if len(available_dates) < 2:
+                continue # 如果這是該 ETF 最古老的一顆檔案，就無法計算它的昨日差額
+                
+            previous_date = available_dates[1]
+            print(f"    🔍 {etf_code} 正在精準比對：{target_date} 物聯 {previous_date}")
+            
             res_today = smart_read_and_clean(dates_files[target_date])
             res_yest = smart_read_and_clean(dates_files[previous_date])
             
             if res_today[0] is None or res_yest[0] is None: 
+                print(f"    ❌ 清洗失敗 {etf_code}：無法解析檔案內容。")
                 etf_name = ETF_MAPPING.get(etf_code, "其他投信成分股")
                 etf_blocks_html += f'''
                 <div class="etf-section">
                     <div class="etf-title"><span>{etf_code}</span> {etf_name}</div>
                     <div style="text-align: center; padding: 40px 20px; color: #e74c3c; background-color: #fdf2f0; border-radius: 8px; border: 1px dashed #fadbd8; font-size: 16px;">
-                        ⚠️ 檔案讀取失敗：投信網站提供的資料格式異常，或假日無更新檔案。
+                        ⚠️ 檔案讀取失敗：投信網站提供的資料格式異常。
                     </div>
                 </div>
                 '''
@@ -221,7 +240,6 @@ def generate():
             df_diff = df_merged[df_merged['Diff'] != 0].copy()
             
             if df_diff.empty: 
-                print(f"    ⚖️ 無變動 {etf_code}：兩天持股完全一致。")
                 etf_name = ETF_MAPPING.get(etf_code, "其他投信成分股")
                 etf_blocks_html += f'''
                 <div class="etf-section">
@@ -295,11 +313,11 @@ def generate():
         if etf_blocks_html == "":
             etf_blocks_html = '<div style="color:#8898aa; padding: 30px; text-align:center; font-style:italic;">今日各檔 ETF 無成分股變動，或資料不足。</div>'
 
-        # 🌟 痛點破解：徹底移除 Focus 虛線框，升級柔和陰影選單
+        # 智慧日期選單（改以 valid_report_dates 為主體）
         menu_html = '<div class="date-menu" style="display: flex; flex-wrap: wrap; gap: 8px; align-items: center; position: relative; z-index: 50;">'
         visible_count = 5
         
-        for idx, d in enumerate(sorted_dates[:-1]): 
+        for idx, d in enumerate(valid_report_dates): 
             display_date = f"{d[4:6]}/{d[6:8]}"
             active_class = "active" if d == target_date else ""
             btn_html = f'<a href="{d}.html" class="menu-btn {active_class}">{display_date}</a>'
@@ -324,7 +342,7 @@ def generate():
             else:
                 menu_html += btn_html
 
-        if len(sorted_dates[:-1]) > visible_count:
+        if len(valid_report_dates) > visible_count:
             menu_html += '</div></details>'
         menu_html += '</div>'
 
@@ -335,7 +353,8 @@ def generate():
         with open(f'dist/{target_date}.html', 'w', encoding='utf-8') as f:
             f.write(page_final)
 
-    latest_date = sorted_dates[0]
+    # 首頁強制鎖定最新最有效的報表頁面
+    latest_date = valid_report_dates[0]
     if os.path.exists(f'dist/{latest_date}.html'):
         with open(f'dist/{latest_date}.html', 'r', encoding='utf-8') as sf:
             with open('dist/index.html', 'w', encoding='utf-8') as df:
