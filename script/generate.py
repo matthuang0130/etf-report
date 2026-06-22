@@ -1,4 +1,4 @@
-print("🚀 終極完全體啟動：自動清洗 + 自動比對差額 + 前 20 大持股解析 + 基金規模探測 + 智慧日期摺疊 + 手機版排版防擠壓修復...")
+print("🚀 終極完全體啟動：自動清洗 + 異步日期 + 基金規模 + 智慧摺疊 + 100%手機防擠壓/防重疊排版...")
 import pandas as pd
 import os
 import glob
@@ -185,17 +185,15 @@ def generate():
                 name_str = str(row.Name)
                 weight_str = f"{row.Weight:.2f}%" if row.Weight > 0 else f"{int(row.Qty):,} 股"
                 
-                # 🌟 核心修復：加入 min-width: 70px 保護層，並換上安全的 overflow-wrap
+                # 🌟 核心修復：使用最堅固的 Flex 網格設定，徹底斷絕 CSS class 的幽靈干擾
                 top20_html += f'''
-                <li class="list-item" style="border: 1px solid #e2e8f0; border-radius: 6px; padding: 10px 12px; display: flex; justify-content: space-between; align-items: center; background-color: #fff; margin-bottom: 0; min-height: 48px;">
-                    <div class="item-left" style="display: flex; align-items: center; flex: 1; min-width: 0; margin-right: 12px;">
-                        <span style="display:inline-block; width:24px; flex-shrink: 0; color:#64748b; font-size:13px; font-weight:bold; font-style:italic;">#{rank}</span>
-                        <span class="col-id" style="width:65px; flex-shrink: 0; font-family: monospace; color:#475569; font-size: 14px; margin-right: 4px;">{code_str}</span>
-                        <div class="name-wrapper" style="flex: 1; min-width: 70px;">
-                            <span class="col-name" style="font-weight:700; color:#1e293b; font-size: 13px; white-space: normal; word-wrap: break-word; overflow-wrap: break-word; word-break: normal; line-height: 1.3; display: block;">{name_str}</span>
-                        </div>
+                <li style="border: 1px solid #e2e8f0; border-radius: 6px; padding: 10px 12px; display: flex; align-items: center; justify-content: space-between; background-color: #fff; margin-bottom: 0; min-height: 48px; gap: 8px;">
+                    <span style="flex: 0 0 24px; color:#64748b; font-size:13px; font-weight:bold; font-style:italic;">#{rank}</span>
+                    <span style="flex: 0 0 60px; font-family: monospace; color:#475569; font-size: 14px;">{code_str}</span>
+                    <div style="flex: 1 1 0%; min-width: 0;">
+                        <span style="font-weight:700; color:#1e293b; font-size: 13px; white-space: normal; word-break: break-word; line-height: 1.3; display: block;">{name_str}</span>
                     </div>
-                    <span class="col-qty" style="flex-shrink: 0; color:#0ea5e9; font-weight:800; font-size: 14px;">{weight_str}</span>
+                    <span style="flex: 0 0 auto; color:#0ea5e9; font-weight:800; font-size: 14px; text-align: right; position: static !important; margin: 0; padding: 0;">{weight_str}</span>
                 </li>
                 '''
             
@@ -249,16 +247,14 @@ def generate():
 
                 name_display = f"<span style='color: #ef4444; font-weight: bold; font-size: 12px; margin-right: 4px;'>[新進]</span>{row['Name']}" if is_new_entry else row['Name']
 
-                # 🌟 核心修復：同上，買賣清單也加入 min-width 保護
+                # 🌟 買賣差額區塊也全面套用金鐘罩排版
                 item_html = f'''
-                <li class="list-item" style="display: flex; align-items: center; min-height: 40px;">
-                    <div class="item-left" style="display: flex; align-items: center; flex: 1; min-width: 0;">
-                        <span class="col-id" style="flex-shrink: 0; width: 65px; margin-right: 4px;">{code_str}</span>
-                        <div class="name-wrapper" style="flex: 1; min-width: 70px; margin-right: 10px;">
-                            <span class="col-name" style="white-space: normal; word-wrap: break-word; overflow-wrap: break-word; word-break: normal; line-height: 1.3; display: block;">{name_display}</span>
-                        </div>
+                <li style="display: flex; align-items: center; justify-content: space-between; min-height: 40px; gap: 8px; border-bottom: 1px solid #f1f5f9; padding: 4px 0;">
+                    <span style="flex: 0 0 50px; font-family: monospace; font-size: 14px; color:#475569;">{code_str}</span>
+                    <div style="flex: 1 1 0%; min-width: 0;">
+                        <span style="white-space: normal; word-break: break-word; line-height: 1.3; display: block; font-size: 13px;">{name_display}</span>
                     </div>
-                    <span class="col-qty {'val-buy' if is_buy else 'val-sell'}" style="flex-shrink: 0;">{qty_str}</span>
+                    <span class="{'val-buy' if is_buy else 'val-sell'}" style="flex: 0 0 auto; font-weight:bold; font-size: 14px; position: static !important; margin: 0; padding: 0;">{qty_str}</span>
                 </li>
                 '''
                 if is_buy:
@@ -276,13 +272,13 @@ def generate():
                 <div class="tables-grid">
                     <div class="table-box">
                         <div class="box-header header-buy"><div>買進成分股</div><div>共 {buy_count} 檔</div></div>
-                        <div class="list-header"><div class="list-header-left"><span style="width:48px;display:inline-block;">代號</span><span>名稱</span></div><span>數量</span></div>
-                        <ul class="data-list">{buy_html}</ul>
+                        <div class="list-header" style="display: flex; gap: 8px;"><span style="flex: 0 0 50px;">代號</span><span style="flex: 1 1 0%;">名稱</span><span style="flex: 0 0 auto;">數量</span></div>
+                        <ul class="data-list" style="padding: 0; margin: 0; list-style: none;">{buy_html}</ul>
                     </div>
                     <div class="table-box">
                         <div class="box-header header-sell"><div>賣出成分股</div><div>共 {sell_count} 檔</div></div>
-                        <div class="list-header"><div class="list-header-left"><span style="width:48px;display:inline-block;">代號</span><span>名稱</span></div><span>數量</span></div>
-                        <ul class="data-list">{sell_html}</ul>
+                        <div class="list-header" style="display: flex; gap: 8px;"><span style="flex: 0 0 50px;">代號</span><span style="flex: 1 1 0%;">名稱</span><span style="flex: 0 0 auto;">數量</span></div>
+                        <ul class="data-list" style="padding: 0; margin: 0; list-style: none;">{sell_html}</ul>
                     </div>
                 </div>
                 {top20_block}
@@ -324,12 +320,11 @@ def generate():
             menu_html += '</div></details>'
         menu_html += '</div>'
 
-        full_page = menu_html + etf_blocks_html
-        page_final = html_template.replace('<div class="date-badge">資料更新完畢</div>', f'<div class="date-badge">更新日期：{target_date[:4]}/{target_date[4:6]}/{target_date[6:8]}</div>')
-        page_final = page_final.replace('<div id="content"></div>', full_page)
+        full_page = html_template.replace('<div class="date-badge">資料更新完畢</div>', f'<div class="date-badge">更新日期：{target_date[:4]}/{target_date[4:6]}/{target_date[6:8]}</div>')
+        full_page = full_page.replace('<div id="content"></div>', menu_html + etf_blocks_html)
         
         with open(f'dist/{target_date}.html', 'w', encoding='utf-8') as f:
-            f.write(page_final)
+            f.write(full_page)
 
     latest_date = valid_report_dates[0]
     if os.path.exists(f'dist/{latest_date}.html'):
