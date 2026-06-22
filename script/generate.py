@@ -1,4 +1,4 @@
-print("🚀 終極完全體啟動：自動清洗 + 自動比對差額 + 前 20 大持股解析 + 基金規模探測 + 智慧日期摺疊 + 異步日期斷層免疫機制...")
+print("🚀 終極完全體啟動：自動清洗 + 自動比對差額 + 前 20 大持股解析 + 基金規模探測 + 智慧日期摺疊 + 手機版排版防擠壓修復...")
 import pandas as pd
 import os
 import glob
@@ -13,7 +13,6 @@ ETF_MAPPING = {
 }
 
 def extract_fund_size(df):
-    """ 十字掃描雷達，支援各種排版的基金規模 """
     try:
         for i in range(min(20, len(df))):
             row_vals = [str(x).strip().replace(',', '') for x in df.iloc[i].values if pd.notna(x)]
@@ -119,7 +118,6 @@ def generate():
     all_files = [f for f in glob.glob(os.path.join('data', "*")) if not os.path.basename(f).startswith('.')]
     
     if not all_files:
-        print("❌ data/ 資料夾內沒有檔案！")
         return
 
     etf_history = defaultdict(dict)
@@ -134,14 +132,11 @@ def generate():
             date_str = date_match.group(1)
             raw_code = etf_match.group(1).upper()
             etf_code = "00" + raw_code.lstrip('0') if len(raw_code.lstrip('0')) <= 4 else raw_code 
-            
             etf_history[etf_code][date_str] = f
             all_dates.add(date_str)
-            print(f"📥 成功讀取待命檔案: {etf_code} [{date_str}]")
 
     sorted_dates = sorted(list(all_dates), reverse=True)
     
-    # 🌟 智慧預檢：找出哪些日期真正具備「至少一檔 ETF 可供比對」的有效報表日
     valid_report_dates = []
     for target_date in sorted_dates:
         for etf_code, dates_files in etf_history.items():
@@ -149,47 +144,30 @@ def generate():
                 available_dates = sorted([d for d in dates_files.keys() if d <= target_date], reverse=True)
                 if len(available_dates) >= 2:
                     valid_report_dates.append(target_date)
-                    break # 只要有一檔能算，這天就是有效報表日
+                    break 
 
     if not valid_report_dates:
-        print("⚠️ 警告：資料夾內資料不足，無法計算任何持股差額。")
         return
 
     with open('templates/index.html', 'r', encoding='utf-8') as f:
         html_template = f.read()
 
-    # 以有效報表日為主體進行循環
     for target_date in valid_report_dates:
-        print(f"\n🧮 正在處理 【{target_date}】 的各檔投信報表比對...")
-        
         etf_blocks_html = ""
         
         for etf_code, dates_files in sorted(etf_history.items()):
             if target_date not in dates_files:
                 continue 
                 
-            # 🌟 核心修正：每檔 ETF 獨立向過去尋找自己的前一交易日，完美跨越每家投信不同的放假斷層！
             available_dates = sorted([d for d in dates_files.keys() if d <= target_date], reverse=True)
             if len(available_dates) < 2:
-                continue # 如果這是該 ETF 最古老的一顆檔案，就無法計算它的昨日差額
+                continue 
                 
             previous_date = available_dates[1]
-            print(f"    🔍 {etf_code} 正在精準比對：{target_date} 物聯 {previous_date}")
-            
             res_today = smart_read_and_clean(dates_files[target_date])
             res_yest = smart_read_and_clean(dates_files[previous_date])
             
             if res_today[0] is None or res_yest[0] is None: 
-                print(f"    ❌ 清洗失敗 {etf_code}：無法解析檔案內容。")
-                etf_name = ETF_MAPPING.get(etf_code, "其他投信成分股")
-                etf_blocks_html += f'''
-                <div class="etf-section">
-                    <div class="etf-title"><span>{etf_code}</span> {etf_name}</div>
-                    <div style="text-align: center; padding: 40px 20px; color: #e74c3c; background-color: #fdf2f0; border-radius: 8px; border: 1px dashed #fadbd8; font-size: 16px;">
-                        ⚠️ 檔案讀取失敗：投信網站提供的資料格式異常。
-                    </div>
-                </div>
-                '''
                 continue
 
             df_today, size_today = res_today
@@ -207,13 +185,14 @@ def generate():
                 name_str = str(row.Name)
                 weight_str = f"{row.Weight:.2f}%" if row.Weight > 0 else f"{int(row.Qty):,} 股"
                 
+                # 🌟 核心修復：加入 min-width: 70px 保護層，並換上安全的 overflow-wrap
                 top20_html += f'''
                 <li class="list-item" style="border: 1px solid #e2e8f0; border-radius: 6px; padding: 10px 12px; display: flex; justify-content: space-between; align-items: center; background-color: #fff; margin-bottom: 0; min-height: 48px;">
                     <div class="item-left" style="display: flex; align-items: center; flex: 1; min-width: 0; margin-right: 12px;">
                         <span style="display:inline-block; width:24px; flex-shrink: 0; color:#64748b; font-size:13px; font-weight:bold; font-style:italic;">#{rank}</span>
-                        <span class="col-id" style="width:60px; flex-shrink: 0; font-family: monospace; color:#475569; font-size: 14px;">{code_str}</span>
-                        <div class="name-wrapper" style="flex: 1; min-width: 0;">
-                            <span class="col-name" style="font-weight:700; color:#1e293b; font-size: 13px; white-space: normal; word-break: break-word; line-height: 1.3; display: block;">{name_str}</span>
+                        <span class="col-id" style="width:65px; flex-shrink: 0; font-family: monospace; color:#475569; font-size: 14px; margin-right: 4px;">{code_str}</span>
+                        <div class="name-wrapper" style="flex: 1; min-width: 70px;">
+                            <span class="col-name" style="font-weight:700; color:#1e293b; font-size: 13px; white-space: normal; word-wrap: break-word; overflow-wrap: break-word; word-break: normal; line-height: 1.3; display: block;">{name_str}</span>
                         </div>
                     </div>
                     <span class="col-qty" style="flex-shrink: 0; color:#0ea5e9; font-weight:800; font-size: 14px;">{weight_str}</span>
@@ -270,12 +249,13 @@ def generate():
 
                 name_display = f"<span style='color: #ef4444; font-weight: bold; font-size: 12px; margin-right: 4px;'>[新進]</span>{row['Name']}" if is_new_entry else row['Name']
 
+                # 🌟 核心修復：同上，買賣清單也加入 min-width 保護
                 item_html = f'''
                 <li class="list-item" style="display: flex; align-items: center; min-height: 40px;">
                     <div class="item-left" style="display: flex; align-items: center; flex: 1; min-width: 0;">
-                        <span class="col-id" style="flex-shrink: 0; width: 50px;">{code_str}</span>
-                        <div class="name-wrapper" style="flex: 1; min-width: 0; margin-right: 10px;">
-                            <span class="col-name" style="white-space: normal; word-break: break-word; line-height: 1.3; display: block;">{name_display}</span>
+                        <span class="col-id" style="flex-shrink: 0; width: 65px; margin-right: 4px;">{code_str}</span>
+                        <div class="name-wrapper" style="flex: 1; min-width: 70px; margin-right: 10px;">
+                            <span class="col-name" style="white-space: normal; word-wrap: break-word; overflow-wrap: break-word; word-break: normal; line-height: 1.3; display: block;">{name_display}</span>
                         </div>
                     </div>
                     <span class="col-qty {'val-buy' if is_buy else 'val-sell'}" style="flex-shrink: 0;">{qty_str}</span>
@@ -308,12 +288,10 @@ def generate():
                 {top20_block}
             </div>
             '''
-            print(f"  ✅ 成功計算 {etf_code}：買進 {buy_count} 檔，賣出 {sell_count} 檔，並產出前 20 大持股與規模。")
 
         if etf_blocks_html == "":
             etf_blocks_html = '<div style="color:#8898aa; padding: 30px; text-align:center; font-style:italic;">今日各檔 ETF 無成分股變動，或資料不足。</div>'
 
-        # 智慧日期選單（改以 valid_report_dates 為主體）
         menu_html = '<div class="date-menu" style="display: flex; flex-wrap: wrap; gap: 8px; align-items: center; position: relative; z-index: 50;">'
         visible_count = 5
         
@@ -353,13 +331,11 @@ def generate():
         with open(f'dist/{target_date}.html', 'w', encoding='utf-8') as f:
             f.write(page_final)
 
-    # 首頁強制鎖定最新最有效的報表頁面
     latest_date = valid_report_dates[0]
     if os.path.exists(f'dist/{latest_date}.html'):
         with open(f'dist/{latest_date}.html', 'r', encoding='utf-8') as sf:
             with open('dist/index.html', 'w', encoding='utf-8') as df:
                 df.write(sf.read())
-        print(f"\n✨ 完美收工！首頁已更新為 {latest_date} 的差額比對報表！")
 
 if __name__ == "__main__":
     generate()
