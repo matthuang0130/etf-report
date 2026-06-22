@@ -1,4 +1,4 @@
-print("🚀 終極完全體啟動：自動清洗 + 異步日期 + 基金規模 + 智慧摺疊 + 100%手機防擠壓/防重疊排版...")
+print("🚀 終極完全體啟動：自動清洗 + 異步日期 + 基金規模 + 智慧摺疊 + 美股純代號極簡優化...")
 import pandas as pd
 import os
 import glob
@@ -185,15 +185,28 @@ def generate():
                 name_str = str(row.Name)
                 weight_str = f"{row.Weight:.2f}%" if row.Weight > 0 else f"{int(row.Qty):,} 股"
                 
-                # 🌟 核心修復：使用最堅固的 Flex 網格設定，徹底斷絕 CSS class 的幽靈干擾
+                # 🌟 核心進化 1：判斷是否為美股 (代號內含英文字母)
+                is_us_stock = any(char.isalpha() for char in code_str)
+                
+                if is_us_stock:
+                    # 美股：隱藏名字，代號直接放大填滿中間欄位，絕對不塞車！
+                    item_body_html = f'''
+                    <span style="flex: 1 1 0%; font-family: monospace; color:#1e293b; font-size: 15px; font-weight: 800; letter-spacing: 0.5px;">{code_str}</span>
+                    '''
+                else:
+                    # 台股：維持原樣 (左代號、中名稱)
+                    item_body_html = f'''
+                    <span style="flex: 0 0 60px; font-family: monospace; color:#475569; font-size: 14px; margin-right: 4px;">{code_str}</span>
+                    <div style="flex: 1 1 0%; min-width: 70px;">
+                        <span style="font-weight:700; color:#1e293b; font-size: 13px; white-space: normal; word-wrap: break-word; overflow-wrap: break-word; word-break: normal; line-height: 1.3; display: block;">{name_str}</span>
+                    </div>
+                    '''
+                
                 top20_html += f'''
                 <li style="border: 1px solid #e2e8f0; border-radius: 6px; padding: 10px 12px; display: flex; align-items: center; justify-content: space-between; background-color: #fff; margin-bottom: 0; min-height: 48px; gap: 8px;">
                     <span style="flex: 0 0 24px; color:#64748b; font-size:13px; font-weight:bold; font-style:italic;">#{rank}</span>
-                    <span style="flex: 0 0 60px; font-family: monospace; color:#475569; font-size: 14px;">{code_str}</span>
-                    <div style="flex: 1 1 0%; min-width: 0;">
-                        <span style="font-weight:700; color:#1e293b; font-size: 13px; white-space: normal; word-break: break-word; line-height: 1.3; display: block;">{name_str}</span>
-                    </div>
-                    <span style="flex: 0 0 auto; color:#0ea5e9; font-weight:800; font-size: 14px; text-align: right; position: static !important; margin: 0; padding: 0;">{weight_str}</span>
+                    {item_body_html}
+                    <span style="flex: 0 0 auto; color:#0ea5e9; font-weight:800; font-size: 14px; text-align: right; position: static !important;">{weight_str}</span>
                 </li>
                 '''
             
@@ -245,16 +258,29 @@ def generate():
                 if is_buy and (pd.isna(row['Qty_Y']) or row['Qty_Y'] == 0):
                     is_new_entry = True
 
-                name_display = f"<span style='color: #ef4444; font-weight: bold; font-size: 12px; margin-right: 4px;'>[新進]</span>{row['Name']}" if is_new_entry else row['Name']
-
-                # 🌟 買賣差額區塊也全面套用金鐘罩排版
-                item_html = f'''
-                <li style="display: flex; align-items: center; justify-content: space-between; min-height: 40px; gap: 8px; border-bottom: 1px solid #f1f5f9; padding: 4px 0;">
+                # 🌟 核心進化 2：買賣差額清單也同步套用美股純代號邏輯
+                is_us_stock = any(char.isalpha() for char in code_str)
+                
+                if is_us_stock:
+                    display_text = f"<span style='color: #ef4444; font-weight: bold; font-size: 12px; margin-right: 4px;'>[新進]</span>{code_str}" if is_new_entry else code_str
+                    diff_body_html = f'''
+                    <div style="flex: 1 1 0%; min-width: 0;">
+                        <span style="font-family: monospace; font-size: 14px; color:#1e293b; font-weight: 800; letter-spacing: 0.5px;">{display_text}</span>
+                    </div>
+                    '''
+                else:
+                    name_display = f"<span style='color: #ef4444; font-weight: bold; font-size: 12px; margin-right: 4px;'>[新進]</span>{row['Name']}" if is_new_entry else row['Name']
+                    diff_body_html = f'''
                     <span style="flex: 0 0 50px; font-family: monospace; font-size: 14px; color:#475569;">{code_str}</span>
                     <div style="flex: 1 1 0%; min-width: 0;">
-                        <span style="white-space: normal; word-break: break-word; line-height: 1.3; display: block; font-size: 13px;">{name_display}</span>
+                        <span style="white-space: normal; word-break: break-word; overflow-wrap: break-word; word-break: normal; line-height: 1.3; display: block; font-size: 13px;">{name_display}</span>
                     </div>
-                    <span class="{'val-buy' if is_buy else 'val-sell'}" style="flex: 0 0 auto; font-weight:bold; font-size: 14px; position: static !important; margin: 0; padding: 0;">{qty_str}</span>
+                    '''
+
+                item_html = f'''
+                <li style="display: flex; align-items: center; justify-content: space-between; min-height: 40px; gap: 8px; border-bottom: 1px solid #f1f5f9; padding: 4px 0;">
+                    {diff_body_html}
+                    <span class="{'val-buy' if is_buy else 'val-sell'}" style="flex: 0 0 auto; font-weight:bold; font-size: 14px; position: static !important;">{qty_str}</span>
                 </li>
                 '''
                 if is_buy:
@@ -331,6 +357,7 @@ def generate():
         with open(f'dist/{latest_date}.html', 'r', encoding='utf-8') as sf:
             with open('dist/index.html', 'w', encoding='utf-8') as df:
                 df.write(sf.read())
+        print(f"✨ 完美收工！首頁已更新為 {latest_date} 的極簡版美股報表！")
 
 if __name__ == "__main__":
     generate()
