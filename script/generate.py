@@ -11,7 +11,7 @@ ETF_MAPPING = {
     "00405A": "富邦台灣龍耀", "00402A": "安聯美國科技"
 }
 
-# 🌟 跨國股票中文簡稱字典 (擴充半導體與科技巨頭)
+# 🌟 跨國股票中文簡稱字典
 STOCK_NAME_MAP = {
     "NVDA": "輝達", "AAPL": "蘋果", "MSFT": "微軟", "AMZN": "亞馬遜", 
     "GOOGL": "谷歌", "META": "臉書", "TSLA": "特斯拉", "AMD": "超微", 
@@ -184,10 +184,10 @@ def generate():
             top20_html = ""
             for rank, row in enumerate(top20_items.itertuples(), 1):
                 raw_code = str(row.Code).replace('.0', '').strip()
-                base_code = raw_code.split()[0] # 濾掉 US/JP 抓核心代碼
+                # 🌟 加入 .upper() 強制轉換大寫，徹底解決 285a 查不到的問題
+                base_code = raw_code.split()[0].upper() 
                 raw_name = str(row.Name).replace('nan', '').strip()
                 
-                # 🌟 名稱判定邏輯：有簡稱用簡稱，沒簡稱用原名，原名也沒有就直接補上 base_code
                 if base_code in STOCK_NAME_MAP:
                     name_display = STOCK_NAME_MAP[base_code]
                 elif raw_name:
@@ -197,7 +197,6 @@ def generate():
                 
                 weight_str = f"{row.Weight:.2f}%" if row.Weight > 0 else f"{int(row.Qty):,} 股"
 
-                # 🌟 max-width 限制最大寬度，超出的英文自動變 ...
                 top20_html += f'''
                 <tr style="border-bottom: 1px solid #e2e8f0; height: 48px;">
                     <td style="padding: 8px; width: 45px; color: #64748b; font-size: 14px; font-weight: bold; font-style: italic;">#{rank}</td>
@@ -259,7 +258,8 @@ def generate():
                 qty_str = f"+{abs_qty:,}" if is_buy else f"-{abs_qty:,}"
                 
                 raw_code = str(row['Code']).replace('.0', '').strip()
-                base_code = raw_code.split()[0]
+                # 🌟 這裡也加入 .upper() 強制轉換大寫
+                base_code = raw_code.split()[0].upper()
                 if '元' in raw_code or '現金' in raw_code or raw_code == 'nan': continue
 
                 is_new_entry = False
@@ -268,7 +268,6 @@ def generate():
 
                 raw_name = str(row['Name']).replace('nan', '').strip()
 
-                # 🌟 買賣清單的名稱判定邏輯
                 if base_code in STOCK_NAME_MAP:
                     name_display = STOCK_NAME_MAP[base_code]
                 elif raw_name:
@@ -279,7 +278,6 @@ def generate():
                 if is_new_entry:
                     name_display = f"<span style='color: #ef4444; font-weight: bold; font-size: 13px; margin-right: 4px;'>[新進]</span>{name_display}"
 
-                # 🌟 max-width 防止過長英文撐爆排版
                 item_html = f'''
                 <tr style="border-bottom: 1px solid #f1f5f9; height: 50px;">
                     <td style="padding: 10px 8px; font-family: monospace; color: #475569; font-size: 15px; font-weight: 600; white-space: nowrap;">{raw_code}</td>
