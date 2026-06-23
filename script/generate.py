@@ -1,4 +1,4 @@
-print("🚀 終極完全體啟動：自動清洗 + 異步日期 + 台美股全面絕對置中排版 + 超大字體版...")
+print("🚀 終極完全體啟動：自動清洗 + 異步日期 + 軍規級絕對靠左垂直對齊 + 超大字體版...")
 import pandas as pd
 import os
 import glob
@@ -188,18 +188,19 @@ def generate():
                 is_us_stock = any(char.isalpha() for char in code_str)
                 
                 if is_us_stock:
+                    # 美股：靠左對齊，無名稱
                     item_body_html = f'''
-                    <span style="flex: 0 0 30px; color:#64748b; font-size:16px; font-weight:bold; font-style:italic;">#{rank}</span>
-                    <div style="display: flex; align-items: center; justify-content: center; flex: 1 1 0%; min-width: 0; padding-right: 15px;">
+                    <div style="display: flex; align-items: center; justify-content: flex-start; flex: 1 1 0%; min-width: 0; gap: 12px;">
+                        <span style="flex: 0 0 30px; color:#64748b; font-size:16px; font-weight:bold; font-style:italic;">#{rank}</span>
                         <span style="font-family: monospace; color:#1e293b; font-size: 19px; font-weight: 800; letter-spacing: 1px;">{code_str}</span>
                     </div>
                     '''
                 else:
-                    # 🌟 修復台股歪一邊：加上 justify-content: center，讓台股跟標題完美對齊！
+                    # 台股：固定代號寬度(50px)，讓後面的中文名字垂直完美切齊！
                     item_body_html = f'''
-                    <span style="flex: 0 0 30px; color:#64748b; font-size:16px; font-weight:bold; font-style:italic;">#{rank}</span>
-                    <div style="display: flex; align-items: center; justify-content: center; flex: 1 1 0%; min-width: 0; gap: 10px; padding-right: 15px;">
-                        <span style="flex: 0 0 auto; font-family: monospace; color:#475569; font-size: 16px; font-weight: 600;">{code_str}</span>
+                    <div style="display: flex; align-items: center; justify-content: flex-start; flex: 1 1 0%; min-width: 0; gap: 12px;">
+                        <span style="flex: 0 0 30px; color:#64748b; font-size:16px; font-weight:bold; font-style:italic;">#{rank}</span>
+                        <span style="flex: 0 0 50px; font-family: monospace; color:#475569; font-size: 16px; font-weight: 600;">{code_str}</span>
                         <span style="font-weight:700; color:#1e293b; font-size: 17px; white-space: normal; word-break: break-word; line-height: 1.4;">{name_str}</span>
                     </div>
                     '''
@@ -246,9 +247,10 @@ def generate():
             buy_html, sell_html = "", ""
             buy_count, sell_count = 0, 0
 
+            # 🌟 標題修正：左邊成分股完全靠左 (text-align: left)，右邊數量靠右
             list_header_html = '''
-            <div class="list-header" style="display: flex; justify-content: space-between; align-items: center; gap: 12px; font-size: 16px; font-weight: bold; color: #64748b; padding-bottom: 8px; border-bottom: 2px solid #e2e8f0; margin-bottom: 8px;">
-                <span style="flex: 1 1 0%; text-align: center;">成分股</span>
+            <div class="list-header" style="display: flex; justify-content: space-between; align-items: center; gap: 12px; font-size: 16px; font-weight: bold; color: #64748b; padding-bottom: 8px; border-bottom: 2px solid #e2e8f0; margin-bottom: 8px; padding-left: 4px; padding-right: 4px;">
+                <span style="flex: 1 1 0%; text-align: left;">成分股</span>
                 <span style="flex: 0 0 auto; min-width: 50px; text-align: right;">數量</span>
             </div>
             '''
@@ -269,18 +271,19 @@ def generate():
                 is_us_stock = any(char.isalpha() for char in code_str)
                 
                 if is_us_stock:
+                    # 美股：代號靠左，切齊上方的標題
                     display_text = f"<span style='color: #ef4444; font-weight: bold; font-size: 14px; margin-right: 6px;'>[新進]</span>{code_str}" if is_new_entry else code_str
                     diff_body_html = f'''
-                    <div style="display: flex; align-items: center; justify-content: center; flex: 1 1 0%; min-width: 0; padding-right: 15px;">
+                    <div style="display: flex; align-items: center; justify-content: flex-start; flex: 1 1 0%; min-width: 0; padding-left: 4px;">
                         <span style="font-family: monospace; font-size: 18px; color:#1e293b; font-weight: 800; letter-spacing: 0.5px;">{display_text}</span>
                     </div>
                     '''
                 else:
-                    # 🌟 修復買賣清單台股歪一邊：同步加上 justify-content: center
+                    # 台股：代號靠左(固定50px寬)，中文名緊接在後，徹底消除歪斜感！
                     name_display = f"<span style='color: #ef4444; font-weight: bold; font-size: 14px; margin-right: 6px;'>[新進]</span>{row['Name']}" if is_new_entry else row['Name']
                     diff_body_html = f'''
-                    <div style="display: flex; align-items: center; justify-content: center; flex: 1 1 0%; min-width: 0; gap: 10px; padding-right: 15px;">
-                        <span style="flex: 0 0 auto; font-family: monospace; font-size: 16px; color:#475569; font-weight: 600;">{code_str}</span>
+                    <div style="display: flex; align-items: center; justify-content: flex-start; flex: 1 1 0%; min-width: 0; gap: 12px; padding-left: 4px;">
+                        <span style="flex: 0 0 50px; font-family: monospace; font-size: 16px; color:#475569; font-weight: 600;">{code_str}</span>
                         <span style="font-weight:700; color:#1e293b; font-size: 17px; white-space: normal; word-break: break-word; line-height: 1.4;">{name_display}</span>
                     </div>
                     '''
