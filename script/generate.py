@@ -1,4 +1,4 @@
-print("🚀 終極完全體啟動：自動清洗 + 異步日期 + 真・置中平衡排版 + 超大字體版...")
+print("🚀 終極完全體啟動：自動清洗 + 異步日期 + 台美股全面絕對置中排版 + 超大字體版...")
 import pandas as pd
 import os
 import glob
@@ -188,7 +188,6 @@ def generate():
                 is_us_stock = any(char.isalpha() for char in code_str)
                 
                 if is_us_stock:
-                    # 🌟 真・置中設定：加上 justify-content: center 讓美股代號坐在正中間！
                     item_body_html = f'''
                     <span style="flex: 0 0 30px; color:#64748b; font-size:16px; font-weight:bold; font-style:italic;">#{rank}</span>
                     <div style="display: flex; align-items: center; justify-content: center; flex: 1 1 0%; min-width: 0; padding-right: 15px;">
@@ -196,9 +195,10 @@ def generate():
                     </div>
                     '''
                 else:
+                    # 🌟 修復台股歪一邊：加上 justify-content: center，讓台股跟標題完美對齊！
                     item_body_html = f'''
                     <span style="flex: 0 0 30px; color:#64748b; font-size:16px; font-weight:bold; font-style:italic;">#{rank}</span>
-                    <div style="display: flex; align-items: center; flex: 1 1 0%; min-width: 0; gap: 10px;">
+                    <div style="display: flex; align-items: center; justify-content: center; flex: 1 1 0%; min-width: 0; gap: 10px; padding-right: 15px;">
                         <span style="flex: 0 0 auto; font-family: monospace; color:#475569; font-size: 16px; font-weight: 600;">{code_str}</span>
                         <span style="font-weight:700; color:#1e293b; font-size: 17px; white-space: normal; word-break: break-word; line-height: 1.4;">{name_str}</span>
                     </div>
@@ -246,7 +246,6 @@ def generate():
             buy_html, sell_html = "", ""
             buy_count, sell_count = 0, 0
 
-            # 🌟 標題列真・置中：把「成分股」標題強制推向中央！
             list_header_html = '''
             <div class="list-header" style="display: flex; justify-content: space-between; align-items: center; gap: 12px; font-size: 16px; font-weight: bold; color: #64748b; padding-bottom: 8px; border-bottom: 2px solid #e2e8f0; margin-bottom: 8px;">
                 <span style="flex: 1 1 0%; text-align: center;">成分股</span>
@@ -270,7 +269,6 @@ def generate():
                 is_us_stock = any(char.isalpha() for char in code_str)
                 
                 if is_us_stock:
-                    # 🌟 美股代號真・置中：使用 justify-content: center 完美居中
                     display_text = f"<span style='color: #ef4444; font-weight: bold; font-size: 14px; margin-right: 6px;'>[新進]</span>{code_str}" if is_new_entry else code_str
                     diff_body_html = f'''
                     <div style="display: flex; align-items: center; justify-content: center; flex: 1 1 0%; min-width: 0; padding-right: 15px;">
@@ -278,10 +276,10 @@ def generate():
                     </div>
                     '''
                 else:
-                    # 台股維持靠左，確保中文字閱讀順暢
+                    # 🌟 修復買賣清單台股歪一邊：同步加上 justify-content: center
                     name_display = f"<span style='color: #ef4444; font-weight: bold; font-size: 14px; margin-right: 6px;'>[新進]</span>{row['Name']}" if is_new_entry else row['Name']
                     diff_body_html = f'''
-                    <div style="display: flex; align-items: center; flex: 1 1 0%; min-width: 0; gap: 10px;">
+                    <div style="display: flex; align-items: center; justify-content: center; flex: 1 1 0%; min-width: 0; gap: 10px; padding-right: 15px;">
                         <span style="flex: 0 0 auto; font-family: monospace; font-size: 16px; color:#475569; font-weight: 600;">{code_str}</span>
                         <span style="font-weight:700; color:#1e293b; font-size: 17px; white-space: normal; word-break: break-word; line-height: 1.4;">{name_display}</span>
                     </div>
