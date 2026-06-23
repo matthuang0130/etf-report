@@ -11,13 +11,16 @@ ETF_MAPPING = {
     "00405A": "富邦台灣龍耀", "00402A": "安聯美國科技"
 }
 
-# 🌟 跨國股票中文簡稱字典 (美股、日股、陸股)
+# 🌟 跨國股票中文簡稱字典 (擴充半導體與科技巨頭)
 STOCK_NAME_MAP = {
     "NVDA": "輝達", "AAPL": "蘋果", "MSFT": "微軟", "AMZN": "亞馬遜", 
     "GOOGL": "谷歌", "META": "臉書", "TSLA": "特斯拉", "AMD": "超微", 
     "AVGO": "博通", "TXN": "德州儀器", "QCOM": "高通", "MU": "美光", 
     "INTC": "英特爾", "CRWD": "資安雲", "ASML": "艾司摩爾",
     "SNDK": "威騰", "IFX": "英飛凌", "BE": "半導體設備",
+    "ARM": "安謀", "SNPS": "新思", "CDNS": "益華", "KLAC": "科磊", 
+    "LRCX": "科林", "AMAT": "應材", "MRVL": "邁威爾", "NXPI": "恩智浦", 
+    "MPWR": "芯源", "ON": "安森美", "MCHP": "微晶", "ADI": "亞德諾",
     "6857": "愛德萬", "7011": "三菱重工", "9984": "軟銀",
     "8035": "東京威力", "285A": "日股", 
     "688146": "中芯", "SMIC": "中芯"
@@ -182,21 +185,24 @@ def generate():
             for rank, row in enumerate(top20_items.itertuples(), 1):
                 raw_code = str(row.Code).replace('.0', '').strip()
                 base_code = raw_code.split()[0] # 濾掉 US/JP 抓核心代碼
+                raw_name = str(row.Name).replace('nan', '').strip()
                 
-                # 名稱判定邏輯
+                # 🌟 名稱判定邏輯：有簡稱用簡稱，沒簡稱用原名，原名也沒有就直接補上 base_code
                 if base_code in STOCK_NAME_MAP:
                     name_display = STOCK_NAME_MAP[base_code]
+                elif raw_name:
+                    name_display = raw_name
                 else:
-                    name_display = str(row.Name)
+                    name_display = base_code
                 
                 weight_str = f"{row.Weight:.2f}%" if row.Weight > 0 else f"{int(row.Qty):,} 股"
 
-                # 加入 white-space: nowrap 強制不換行
+                # 🌟 max-width 限制最大寬度，超出的英文自動變 ...
                 top20_html += f'''
                 <tr style="border-bottom: 1px solid #e2e8f0; height: 48px;">
                     <td style="padding: 8px; width: 45px; color: #64748b; font-size: 14px; font-weight: bold; font-style: italic;">#{rank}</td>
                     <td style="padding: 8px; width: 85px; font-family: monospace; color: #475569; font-size: 15px; font-weight: 600;">{raw_code}</td>
-                    <td style="padding: 8px; text-align: left; white-space: nowrap; font-weight: 700; color: #1e293b; font-size: 16px;">{name_display}</td>
+                    <td style="padding: 8px; text-align: left; max-width: 140px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-weight: 700; color: #1e293b; font-size: 16px;" title="{name_display}">{name_display}</td>
                     <td style="padding: 8px; text-align: right; white-space: nowrap; color: #0ea5e9; font-weight: 900; font-size: 16px;">{weight_str}</td>
                 </tr>
                 '''
@@ -260,20 +266,24 @@ def generate():
                 if is_buy and (pd.isna(row['Qty_Y']) or row['Qty_Y'] == 0):
                     is_new_entry = True
 
-                # 名稱判定邏輯
+                raw_name = str(row['Name']).replace('nan', '').strip()
+
+                # 🌟 買賣清單的名稱判定邏輯
                 if base_code in STOCK_NAME_MAP:
                     name_display = STOCK_NAME_MAP[base_code]
+                elif raw_name:
+                    name_display = raw_name
                 else:
-                    name_display = str(row['Name'])
+                    name_display = base_code
                 
                 if is_new_entry:
                     name_display = f"<span style='color: #ef4444; font-weight: bold; font-size: 13px; margin-right: 4px;'>[新進]</span>{name_display}"
 
-                # 🌟 加入 white-space: nowrap 與 overflow-x: auto
+                # 🌟 max-width 防止過長英文撐爆排版
                 item_html = f'''
                 <tr style="border-bottom: 1px solid #f1f5f9; height: 50px;">
                     <td style="padding: 10px 8px; font-family: monospace; color: #475569; font-size: 15px; font-weight: 600; white-space: nowrap;">{raw_code}</td>
-                    <td style="padding: 10px 8px; text-align: left; white-space: nowrap; font-weight: 700; color: #1e293b; font-size: 16px;">{name_display}</td>
+                    <td style="padding: 10px 8px; text-align: left; max-width: 140px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-weight: 700; color: #1e293b; font-size: 16px;" title="{name_display}">{name_display}</td>
                     <td style="padding: 10px 8px; text-align: right; white-space: nowrap; font-weight: 900; font-size: 16px;" class="{'val-buy' if is_buy else 'val-sell'}">{qty_str}</td>
                 </tr>
                 '''
