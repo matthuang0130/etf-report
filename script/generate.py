@@ -1,4 +1,4 @@
-print("🚀 終極完全體啟動：自動清洗 + 異步日期 + 軍規級絕對靠左垂直對齊 + 超大字體版...")
+print("🚀 終極完全體啟動：自動清洗 + 異步日期 + 標題完美置中 + 內縮留白平衡排版...")
 import pandas as pd
 import os
 import glob
@@ -188,33 +188,34 @@ def generate():
                 is_us_stock = any(char.isalpha() for char in code_str)
                 
                 if is_us_stock:
-                    # 美股：靠左對齊，無名稱
                     item_body_html = f'''
                     <div style="display: flex; align-items: center; justify-content: flex-start; flex: 1 1 0%; min-width: 0; gap: 12px;">
                         <span style="flex: 0 0 30px; color:#64748b; font-size:16px; font-weight:bold; font-style:italic;">#{rank}</span>
                         <span style="font-family: monospace; color:#1e293b; font-size: 19px; font-weight: 800; letter-spacing: 1px;">{code_str}</span>
                     </div>
+                    <div style="flex: 1 1 auto; border-bottom: 2px dotted #94a3b8; margin: 0 16px; opacity: 0.5; min-width: 15px; transform: translateY(4px);"></div>
                     '''
                 else:
-                    # 台股：固定代號寬度(50px)，讓後面的中文名字垂直完美切齊！
                     item_body_html = f'''
                     <div style="display: flex; align-items: center; justify-content: flex-start; flex: 1 1 0%; min-width: 0; gap: 12px;">
                         <span style="flex: 0 0 30px; color:#64748b; font-size:16px; font-weight:bold; font-style:italic;">#{rank}</span>
                         <span style="flex: 0 0 50px; font-family: monospace; color:#475569; font-size: 16px; font-weight: 600;">{code_str}</span>
                         <span style="font-weight:700; color:#1e293b; font-size: 17px; white-space: normal; word-break: break-word; line-height: 1.4;">{name_str}</span>
                     </div>
+                    <div style="flex: 1 1 auto; border-bottom: 2px dotted #94a3b8; margin: 0 16px; opacity: 0.5; min-width: 15px; transform: translateY(4px);"></div>
                     '''
                 
+                # 🌟 加入左右 padding: 14px 24px 讓資料集中不貼壁
                 top20_html += f'''
-                <li style="border: 1px solid #e2e8f0; border-radius: 8px; padding: 14px 16px; display: flex; align-items: center; justify-content: space-between; background-color: #fff; margin-bottom: 0; min-height: 56px; gap: 12px;">
+                <li style="border: 1px solid #e2e8f0; border-radius: 8px; padding: 14px 24px; display: flex; align-items: center; justify-content: space-between; background-color: #fff; margin-bottom: 0; min-height: 56px; gap: 12px;">
                     {item_body_html}
-                    <span style="flex: 0 0 auto; color:#0ea5e9; font-weight:900; font-size: 18px; text-align: right; position: static !important;">{weight_str}</span>
+                    <span style="flex: 0 0 90px; color:#0ea5e9; font-weight:900; font-size: 18px; text-align: right; position: static !important;">{weight_str}</span>
                 </li>
                 '''
             
             top20_block = f'''
             <div class="table-box" style="margin-top: 20px; max-width: 100%; background-color: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px; padding: 16px;">
-                <div class="box-header" style="background-color: #334155; color: white; padding: 14px 16px; border-radius: 6px; margin-bottom: 12px; display: flex; justify-content: space-between;">
+                <div class="box-header" style="background-color: #334155; color: white; padding: 14px 24px; border-radius: 6px; margin-bottom: 12px; display: flex; justify-content: space-between;">
                     <div style="font-weight: bold; font-size: 18px;">👑 前 20 大持股 (本日)</div>
                 </div>
                 <ul class="data-list" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 12px; padding: 0; list-style: none; margin: 0;">
@@ -247,11 +248,11 @@ def generate():
             buy_html, sell_html = "", ""
             buy_count, sell_count = 0, 0
 
-            # 🌟 標題修正：左邊成分股完全靠左 (text-align: left)，右邊數量靠右
+            # 🌟 標題完美置中、增加底色、左右內縮留白 24px
             list_header_html = '''
-            <div class="list-header" style="display: flex; justify-content: space-between; align-items: center; gap: 12px; font-size: 16px; font-weight: bold; color: #64748b; padding-bottom: 8px; border-bottom: 2px solid #e2e8f0; margin-bottom: 8px; padding-left: 4px; padding-right: 4px;">
-                <span style="flex: 1 1 0%; text-align: left;">成分股</span>
-                <span style="flex: 0 0 auto; min-width: 50px; text-align: right;">數量</span>
+            <div class="list-header" style="display: flex; justify-content: space-between; align-items: center; gap: 12px; font-size: 16px; font-weight: bold; color: #475569; padding: 12px 24px; border-bottom: 2px solid #cbd5e1; background-color: #f1f5f9; margin-bottom: 0;">
+                <span style="flex: 1 1 0%; text-align: center; letter-spacing: 4px;">成 分 股</span>
+                <span style="flex: 0 0 90px; text-align: center; letter-spacing: 4px;">數 量</span>
             </div>
             '''
 
@@ -271,27 +272,28 @@ def generate():
                 is_us_stock = any(char.isalpha() for char in code_str)
                 
                 if is_us_stock:
-                    # 美股：代號靠左，切齊上方的標題
                     display_text = f"<span style='color: #ef4444; font-weight: bold; font-size: 14px; margin-right: 6px;'>[新進]</span>{code_str}" if is_new_entry else code_str
                     diff_body_html = f'''
-                    <div style="display: flex; align-items: center; justify-content: flex-start; flex: 1 1 0%; min-width: 0; padding-left: 4px;">
+                    <div style="display: flex; align-items: center; justify-content: flex-start; flex: 0 0 auto;">
                         <span style="font-family: monospace; font-size: 18px; color:#1e293b; font-weight: 800; letter-spacing: 0.5px;">{display_text}</span>
                     </div>
+                    <div style="flex: 1 1 auto; border-bottom: 2px dotted #94a3b8; margin: 0 16px; opacity: 0.5; min-width: 15px; transform: translateY(4px);"></div>
                     '''
                 else:
-                    # 台股：代號靠左(固定50px寬)，中文名緊接在後，徹底消除歪斜感！
                     name_display = f"<span style='color: #ef4444; font-weight: bold; font-size: 14px; margin-right: 6px;'>[新進]</span>{row['Name']}" if is_new_entry else row['Name']
                     diff_body_html = f'''
-                    <div style="display: flex; align-items: center; justify-content: flex-start; flex: 1 1 0%; min-width: 0; gap: 12px; padding-left: 4px;">
+                    <div style="display: flex; align-items: center; justify-content: flex-start; flex: 0 1 auto; min-width: 0; gap: 12px;">
                         <span style="flex: 0 0 50px; font-family: monospace; font-size: 16px; color:#475569; font-weight: 600;">{code_str}</span>
                         <span style="font-weight:700; color:#1e293b; font-size: 17px; white-space: normal; word-break: break-word; line-height: 1.4;">{name_display}</span>
                     </div>
+                    <div style="flex: 1 1 auto; border-bottom: 2px dotted #94a3b8; margin: 0 16px; opacity: 0.5; min-width: 15px; transform: translateY(4px);"></div>
                     '''
 
+                # 🌟 買賣清單加入左右 padding: 10px 24px 集中畫面
                 item_html = f'''
-                <li style="display: flex; align-items: center; justify-content: space-between; min-height: 52px; gap: 12px; border-bottom: 1px solid #f1f5f9; padding: 8px 0;">
+                <li style="display: flex; align-items: center; justify-content: space-between; min-height: 54px; gap: 12px; border-bottom: 1px solid #f1f5f9; padding: 10px 24px; background-color: #ffffff;">
                     {diff_body_html}
-                    <span class="{'val-buy' if is_buy else 'val-sell'}" style="flex: 0 0 auto; font-weight:900; font-size: 18px; text-align: right; position: static !important;">{qty_str}</span>
+                    <span class="{'val-buy' if is_buy else 'val-sell'}" style="flex: 0 0 90px; font-weight:900; font-size: 18px; text-align: right; position: static !important;">{qty_str}</span>
                 </li>
                 '''
                 if is_buy:
@@ -308,12 +310,12 @@ def generate():
                 <div class="etf-title" style="display: flex; align-items: center; flex-wrap: wrap;"><span>{etf_code}</span> {etf_name} {size_badge}</div>
                 <div class="tables-grid">
                     <div class="table-box">
-                        <div class="box-header header-buy" style="font-size: 17px;"><div>買進成分股</div><div>共 {buy_count} 檔</div></div>
+                        <div class="box-header header-buy" style="font-size: 17px; padding: 14px 24px;"><div>買進成分股</div><div>共 {buy_count} 檔</div></div>
                         {list_header_html}
                         <ul class="data-list" style="padding: 0; margin: 0; list-style: none;">{buy_html}</ul>
                     </div>
                     <div class="table-box">
-                        <div class="box-header header-sell" style="font-size: 17px;"><div>賣出成分股</div><div>共 {sell_count} 檔</div></div>
+                        <div class="box-header header-sell" style="font-size: 17px; padding: 14px 24px;"><div>賣出成分股</div><div>共 {sell_count} 檔</div></div>
                         {list_header_html}
                         <ul class="data-list" style="padding: 0; margin: 0; list-style: none;">{sell_html}</ul>
                     </div>
