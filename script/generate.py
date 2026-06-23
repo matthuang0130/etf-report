@@ -1,4 +1,4 @@
-print("🚀 終極完全體啟動：自動清洗 + 異步日期 + 基金規模 + 智慧摺疊 + 美股純代號極簡優化...")
+print("🚀 終極完全體啟動：自動清洗 + 異步日期 + 基金規模 + 智慧摺疊 + 欄位完美合併 + 超大字體版...")
 import pandas as pd
 import os
 import glob
@@ -173,7 +173,7 @@ def generate():
             df_today, size_today = res_today
             df_yest, size_yest = res_yest
 
-            size_badge = f'<span style="font-size: 14px; font-weight: 600; color: #0f172a; margin-left: 12px; background: #e2e8f0; padding: 4px 10px; border-radius: 20px; letter-spacing: 0.5px;">規模: {size_today}</span>' if size_today else ""
+            size_badge = f'<span style="font-size: 16px; font-weight: 600; color: #0f172a; margin-left: 12px; background: #e2e8f0; padding: 4px 12px; border-radius: 20px; letter-spacing: 0.5px;">規模: {size_today}</span>' if size_today else ""
 
             top20_df = df_today.sort_values(by=['Weight', 'Qty'], ascending=[False, False])
             valid_holdings = top20_df[~top20_df['Code'].astype(str).str.contains('元|現金|nan|小計|合計|總計', case=False, na=False)]
@@ -185,35 +185,35 @@ def generate():
                 name_str = str(row.Name)
                 weight_str = f"{row.Weight:.2f}%" if row.Weight > 0 else f"{int(row.Qty):,} 股"
                 
-                # 🌟 核心進化 1：判斷是否為美股 (代號內含英文字母)
                 is_us_stock = any(char.isalpha() for char in code_str)
                 
                 if is_us_stock:
-                    # 美股：隱藏名字，代號直接放大填滿中間欄位，絕對不塞車！
                     item_body_html = f'''
-                    <span style="flex: 1 1 0%; font-family: monospace; color:#1e293b; font-size: 15px; font-weight: 800; letter-spacing: 0.5px;">{code_str}</span>
+                    <div style="display: flex; align-items: center; flex: 1 1 0%; min-width: 0; gap: 12px;">
+                        <span style="flex: 0 0 auto; color:#64748b; font-size:16px; font-weight:bold; font-style:italic;">#{rank}</span>
+                        <span style="font-family: monospace; color:#1e293b; font-size: 18px; font-weight: 800; letter-spacing: 0.5px;">{code_str}</span>
+                    </div>
                     '''
                 else:
-                    # 台股：維持原樣 (左代號、中名稱)
                     item_body_html = f'''
-                    <span style="flex: 0 0 60px; font-family: monospace; color:#475569; font-size: 14px; margin-right: 4px;">{code_str}</span>
-                    <div style="flex: 1 1 0%; min-width: 70px;">
-                        <span style="font-weight:700; color:#1e293b; font-size: 13px; white-space: normal; word-wrap: break-word; overflow-wrap: break-word; word-break: normal; line-height: 1.3; display: block;">{name_str}</span>
+                    <div style="display: flex; align-items: center; flex: 1 1 0%; min-width: 0; gap: 10px;">
+                        <span style="flex: 0 0 auto; color:#64748b; font-size:16px; font-weight:bold; font-style:italic;">#{rank}</span>
+                        <span style="flex: 0 0 auto; font-family: monospace; color:#475569; font-size: 16px; font-weight: 600;">{code_str}</span>
+                        <span style="font-weight:700; color:#1e293b; font-size: 17px; white-space: normal; word-break: break-word; line-height: 1.4;">{name_str}</span>
                     </div>
                     '''
                 
                 top20_html += f'''
-                <li style="border: 1px solid #e2e8f0; border-radius: 6px; padding: 10px 12px; display: flex; align-items: center; justify-content: space-between; background-color: #fff; margin-bottom: 0; min-height: 48px; gap: 8px;">
-                    <span style="flex: 0 0 24px; color:#64748b; font-size:13px; font-weight:bold; font-style:italic;">#{rank}</span>
+                <li style="border: 1px solid #e2e8f0; border-radius: 8px; padding: 14px 16px; display: flex; align-items: center; justify-content: space-between; background-color: #fff; margin-bottom: 0; min-height: 56px; gap: 12px;">
                     {item_body_html}
-                    <span style="flex: 0 0 auto; color:#0ea5e9; font-weight:800; font-size: 14px; text-align: right; position: static !important;">{weight_str}</span>
+                    <span style="flex: 0 0 auto; color:#0ea5e9; font-weight:900; font-size: 18px; text-align: right; position: static !important;">{weight_str}</span>
                 </li>
                 '''
             
             top20_block = f'''
             <div class="table-box" style="margin-top: 20px; max-width: 100%; background-color: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px; padding: 16px;">
-                <div class="box-header" style="background-color: #334155; color: white; padding: 12px 16px; border-radius: 6px; margin-bottom: 12px; display: flex; justify-content: space-between;">
-                    <div style="font-weight: bold; font-size: 16px;">👑 前 20 大持股 (本日)</div>
+                <div class="box-header" style="background-color: #334155; color: white; padding: 14px 16px; border-radius: 6px; margin-bottom: 12px; display: flex; justify-content: space-between;">
+                    <div style="font-weight: bold; font-size: 18px;">👑 前 20 大持股 (本日)</div>
                 </div>
                 <ul class="data-list" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 12px; padding: 0; list-style: none; margin: 0;">
                     {top20_html}
@@ -234,7 +234,7 @@ def generate():
                 etf_blocks_html += f'''
                 <div class="etf-section">
                     <div class="etf-title" style="display: flex; align-items: center; flex-wrap: wrap;"><span>{etf_code}</span> {etf_name} {size_badge}</div>
-                    <div style="text-align: center; padding: 40px 20px; color: #8898aa; background-color: #f8f9fa; border-radius: 8px; border: 1px dashed #dce1e7; font-size: 16px;">
+                    <div style="text-align: center; padding: 40px 20px; color: #8898aa; background-color: #f8f9fa; border-radius: 8px; border: 1px dashed #dce1e7; font-size: 17px;">
                         ⚖️ 今日成分股無任何買賣變動
                     </div>
                     {top20_block}
@@ -244,6 +244,14 @@ def generate():
 
             buy_html, sell_html = "", ""
             buy_count, sell_count = 0, 0
+
+            # 🌟 欄位合併設計：將代號與名稱合而為一的「成分股」
+            list_header_html = '''
+            <div class="list-header" style="display: flex; justify-content: space-between; gap: 12px; font-size: 16px; font-weight: bold; color: #64748b; padding-bottom: 8px; border-bottom: 2px solid #e2e8f0; margin-bottom: 8px;">
+                <span style="flex: 1 1 0%;">成分股</span>
+                <span style="flex: 0 0 auto;">數量</span>
+            </div>
+            '''
 
             for _, row in df_diff.iterrows():
                 diff_val = int(row['Diff'])
@@ -258,29 +266,28 @@ def generate():
                 if is_buy and (pd.isna(row['Qty_Y']) or row['Qty_Y'] == 0):
                     is_new_entry = True
 
-                # 🌟 核心進化 2：買賣差額清單也同步套用美股純代號邏輯
                 is_us_stock = any(char.isalpha() for char in code_str)
                 
                 if is_us_stock:
-                    display_text = f"<span style='color: #ef4444; font-weight: bold; font-size: 12px; margin-right: 4px;'>[新進]</span>{code_str}" if is_new_entry else code_str
+                    display_text = f"<span style='color: #ef4444; font-weight: bold; font-size: 14px; margin-right: 6px;'>[新進]</span>{code_str}" if is_new_entry else code_str
                     diff_body_html = f'''
-                    <div style="flex: 1 1 0%; min-width: 0;">
-                        <span style="font-family: monospace; font-size: 14px; color:#1e293b; font-weight: 800; letter-spacing: 0.5px;">{display_text}</span>
+                    <div style="display: flex; align-items: center; flex: 1 1 0%; min-width: 0;">
+                        <span style="font-family: monospace; font-size: 18px; color:#1e293b; font-weight: 800; letter-spacing: 0.5px;">{display_text}</span>
                     </div>
                     '''
                 else:
-                    name_display = f"<span style='color: #ef4444; font-weight: bold; font-size: 12px; margin-right: 4px;'>[新進]</span>{row['Name']}" if is_new_entry else row['Name']
+                    name_display = f"<span style='color: #ef4444; font-weight: bold; font-size: 14px; margin-right: 6px;'>[新進]</span>{row['Name']}" if is_new_entry else row['Name']
                     diff_body_html = f'''
-                    <span style="flex: 0 0 50px; font-family: monospace; font-size: 14px; color:#475569;">{code_str}</span>
-                    <div style="flex: 1 1 0%; min-width: 0;">
-                        <span style="white-space: normal; word-break: break-word; overflow-wrap: break-word; word-break: normal; line-height: 1.3; display: block; font-size: 13px;">{name_display}</span>
+                    <div style="display: flex; align-items: center; flex: 1 1 0%; min-width: 0; gap: 10px;">
+                        <span style="flex: 0 0 auto; font-family: monospace; font-size: 16px; color:#475569; font-weight: 600;">{code_str}</span>
+                        <span style="font-weight:700; color:#1e293b; font-size: 17px; white-space: normal; word-break: break-word; line-height: 1.4;">{name_display}</span>
                     </div>
                     '''
 
                 item_html = f'''
-                <li style="display: flex; align-items: center; justify-content: space-between; min-height: 40px; gap: 8px; border-bottom: 1px solid #f1f5f9; padding: 4px 0;">
+                <li style="display: flex; align-items: center; justify-content: space-between; min-height: 52px; gap: 12px; border-bottom: 1px solid #f1f5f9; padding: 8px 0;">
                     {diff_body_html}
-                    <span class="{'val-buy' if is_buy else 'val-sell'}" style="flex: 0 0 auto; font-weight:bold; font-size: 14px; position: static !important;">{qty_str}</span>
+                    <span class="{'val-buy' if is_buy else 'val-sell'}" style="flex: 0 0 auto; font-weight:900; font-size: 18px; position: static !important;">{qty_str}</span>
                 </li>
                 '''
                 if is_buy:
@@ -288,8 +295,8 @@ def generate():
                 else:
                     sell_html += item_html; sell_count += 1
 
-            if not buy_html: buy_html = '<div class="empty-row">- 今日無買進動作 -</div>'
-            if not sell_html: sell_html = '<div class="empty-row">- 今日無賣出動作 -</div>'
+            if not buy_html: buy_html = '<div class="empty-row" style="font-size: 16px; padding: 12px 0;">- 今日無買進動作 -</div>'
+            if not sell_html: sell_html = '<div class="empty-row" style="font-size: 16px; padding: 12px 0;">- 今日無賣出動作 -</div>'
 
             etf_name = ETF_MAPPING.get(etf_code, "其他投信成分股")
             etf_blocks_html += f'''
@@ -297,13 +304,13 @@ def generate():
                 <div class="etf-title" style="display: flex; align-items: center; flex-wrap: wrap;"><span>{etf_code}</span> {etf_name} {size_badge}</div>
                 <div class="tables-grid">
                     <div class="table-box">
-                        <div class="box-header header-buy"><div>買進成分股</div><div>共 {buy_count} 檔</div></div>
-                        <div class="list-header" style="display: flex; gap: 8px;"><span style="flex: 0 0 50px;">代號</span><span style="flex: 1 1 0%;">名稱</span><span style="flex: 0 0 auto;">數量</span></div>
+                        <div class="box-header header-buy" style="font-size: 17px;"><div>買進成分股</div><div>共 {buy_count} 檔</div></div>
+                        {list_header_html}
                         <ul class="data-list" style="padding: 0; margin: 0; list-style: none;">{buy_html}</ul>
                     </div>
                     <div class="table-box">
-                        <div class="box-header header-sell"><div>賣出成分股</div><div>共 {sell_count} 檔</div></div>
-                        <div class="list-header" style="display: flex; gap: 8px;"><span style="flex: 0 0 50px;">代號</span><span style="flex: 1 1 0%;">名稱</span><span style="flex: 0 0 auto;">數量</span></div>
+                        <div class="box-header header-sell" style="font-size: 17px;"><div>賣出成分股</div><div>共 {sell_count} 檔</div></div>
+                        {list_header_html}
                         <ul class="data-list" style="padding: 0; margin: 0; list-style: none;">{sell_html}</ul>
                     </div>
                 </div>
@@ -312,7 +319,7 @@ def generate():
             '''
 
         if etf_blocks_html == "":
-            etf_blocks_html = '<div style="color:#8898aa; padding: 30px; text-align:center; font-style:italic;">今日各檔 ETF 無成分股變動，或資料不足。</div>'
+            etf_blocks_html = '<div style="color:#8898aa; padding: 30px; text-align:center; font-style:italic; font-size: 17px;">今日各檔 ETF 無成分股變動，或資料不足。</div>'
 
         menu_html = '<div class="date-menu" style="display: flex; flex-wrap: wrap; gap: 8px; align-items: center; position: relative; z-index: 50;">'
         visible_count = 5
@@ -327,7 +334,7 @@ def generate():
             elif idx == visible_count:
                 menu_html += f'''
                 <style>
-                    details > summary {{ list-style: none; outline: none !important; user-select: none; -webkit-tap-highlight-color: transparent; cursor: pointer; background-color: #f8fafc; border: 1px solid #94a3b8; color: #475569; padding: 6px 12px; border-radius: 20px; font-size: 14px; font-weight: bold; transition: all 0.2s; }}
+                    details > summary {{ list-style: none; outline: none !important; user-select: none; -webkit-tap-highlight-color: transparent; cursor: pointer; background-color: #f8fafc; border: 1px solid #94a3b8; color: #475569; padding: 6px 12px; border-radius: 20px; font-size: 15px; font-weight: bold; transition: all 0.2s; }}
                     details > summary::-webkit-details-marker {{ display: none; }}
                     details > summary:focus, details > summary:active, details > summary:focus-visible {{ outline: none !important; box-shadow: none !important; border-color: #94a3b8; }}
                     details[open] > summary {{ background-color: #e2e8f0; color: #0f172a; }}
@@ -357,7 +364,6 @@ def generate():
         with open(f'dist/{latest_date}.html', 'r', encoding='utf-8') as sf:
             with open('dist/index.html', 'w', encoding='utf-8') as df:
                 df.write(sf.read())
-        print(f"✨ 完美收工！首頁已更新為 {latest_date} 的極簡版美股報表！")
 
 if __name__ == "__main__":
     generate()
