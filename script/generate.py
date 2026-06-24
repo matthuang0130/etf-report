@@ -11,15 +11,17 @@ ETF_MAPPING = {
     "00405A": "富邦台灣龍耀", "00402A": "安聯美國科技"
 }
 
-# 🌟 跨國股票中文簡稱字典 (自動替換太長的外國股名)
+# 🌟 跨國股票中文簡稱擴充字典
 STOCK_NAME_MAP = {
     "NVDA": "輝達", "AAPL": "蘋果", "MSFT": "微軟", "AMZN": "亞馬遜", 
     "GOOGL": "谷歌", "META": "臉書", "TSLA": "特斯拉", "AMD": "超微", 
     "AVGO": "博通", "TXN": "德儀", "QCOM": "高通", "MU": "美光", 
     "INTC": "英特爾", "CRWD": "資安雲", "ASML": "艾司摩爾",
-    "SNDK": "威騰", "IFX": "英飛凌", "BE": "半導體設備", "DDOG": "資料狗", "AXTI": "AXT",
+    "SNDK": "威騰", "WDC": "威騰", "IFX": "英飛凌", "BE": "半導體設備", 
+    "DDOG": "資料狗", "AXTI": "AXT", "MRVL": "邁威爾", "LITE": "朗美通",
     "6857": "愛德萬", "7011": "三菱重工", "9984": "軟銀", "8035": "東京威力", 
-    "285A": "日股", "6787": "日股", "688146": "中芯", "SMIC": "中芯", "603256": "宏和", "009150": "三星電機"
+    "285A": "鎧俠", "6787": "名幸電子", "6981": "村田製作", "009150": "三星電機",
+    "688146": "中芯", "SMIC": "中芯", "603256": "宏和電子"
 }
 
 def extract_fund_size(df):
@@ -173,34 +175,34 @@ def generate():
             top20_html = ""
             for rank, row in enumerate(top20_items.itertuples(), 1):
                 raw_code_full = str(row.Code).replace('.0', '').strip()
-                base_code = raw_code_full.split()[0] # 🌟 切掉 US, JP 尾巴
+                base_code = raw_code_full.split()[0]
                 
                 name_display = STOCK_NAME_MAP.get(base_code, str(row.Name))
                 weight_str = f"{row.Weight:.2f}%" if row.Weight > 0 else f"{int(row.Qty):,} 股"
 
-                # 🌟 強制 nowrap 保證不折行
                 top20_html += f'''
                 <tr style="border-bottom: 1px solid #e2e8f0; height: 48px;">
-                    <td style="padding: 8px; width: 40px; color: #64748b; font-size: 14px; font-weight: bold; font-style: italic; white-space: nowrap;">#{rank}</td>
-                    <td style="padding: 8px; width: 70px; font-family: monospace; color: #475569; font-size: 15px; font-weight: 600; white-space: nowrap;">{base_code}</td>
-                    <td style="padding: 8px; text-align: left; font-weight: 700; color: #1e293b; font-size: 16px; white-space: nowrap;">{name_display}</td>
-                    <td style="padding: 8px; text-align: right; color: #0ea5e9; font-weight: 900; font-size: 16px; white-space: nowrap;">{weight_str}</td>
+                    <td style="padding: 8px; color: #64748b; font-size: 14px; font-weight: bold; font-style: italic; white-space: nowrap;">#{rank}</td>
+                    <td style="padding: 8px; font-family: monospace; color: #475569; font-size: 15px; font-weight: 600; white-space: nowrap;">{base_code}</td>
+                    <td style="padding: 8px; text-align: left; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; font-weight: 700; color: #1e293b; font-size: 16px;">{name_display}</td>
+                    <td style="padding: 8px; text-align: right; white-space: nowrap; color: #0ea5e9; font-weight: 900; font-size: 16px;">{weight_str}</td>
                 </tr>
                 '''
             
+            # 🌟 table-layout: fixed 強制所有 ETF 欄寬一致
             top20_block = f'''
             <div class="table-box" style="margin-top: 25px; background-color: #fff; border: 1px solid #e2e8f0; border-radius: 8px; overflow: hidden; box-shadow: 0 1px 3px rgba(0,0,0,0.05);">
                 <div class="box-header" style="background-color: #334155; color: white; padding: 12px 16px; font-weight: bold; font-size: 16px;">
                     👑 前 20 大持股 (本日)
                 </div>
-                <div style="overflow-x: auto;">
-                    <table style="width: 100%; border-collapse: collapse; text-align: left; background-color: #fff; min-width: 300px;">
+                <div>
+                    <table style="width: 100%; border-collapse: collapse; text-align: left; background-color: #fff; table-layout: fixed;">
                         <thead>
                             <tr style="background-color: #f8fafc; border-bottom: 2px solid #e2e8f0; height: 40px; color: #475569; font-size: 14px; font-weight: bold;">
-                                <th style="padding: 8px; white-space: nowrap;">排行</th>
-                                <th style="padding: 8px; white-space: nowrap;">代號</th>
+                                <th style="padding: 8px; width: 45px; white-space: nowrap;">排行</th>
+                                <th style="padding: 8px; width: 70px; white-space: nowrap;">代號</th>
                                 <th style="padding: 8px; text-align: left; white-space: nowrap;">股名</th>
-                                <th style="padding: 8px; text-align: right; white-space: nowrap;">比例/股數</th>
+                                <th style="padding: 8px; width: 95px; text-align: right; white-space: nowrap;">比例/股數</th>
                             </tr>
                         </thead>
                         <tbody>{top20_html}</tbody>
@@ -240,7 +242,7 @@ def generate():
                 qty_str = f"+{abs_qty:,}" if is_buy else f"-{abs_qty:,}"
                 
                 raw_code_full = str(row['Code']).replace('.0', '').strip()
-                base_code = raw_code_full.split()[0] # 🌟 切掉 US, JP 尾巴
+                base_code = raw_code_full.split()[0]
                 
                 if '元' in raw_code_full or '現金' in raw_code_full or raw_code_full == 'nan': continue
 
@@ -248,12 +250,12 @@ def generate():
                 if is_buy and (pd.isna(row['Qty_Y']) or row['Qty_Y'] == 0): is_new_entry = True
 
                 name_display = STOCK_NAME_MAP.get(base_code, str(row['Name']))
-                if is_new_entry: name_display = f"<span style='color: #ef4444; font-weight: bold; font-size: 13px; margin-right: 4px;'>[新進]</span>{name_display}"
+                if is_new_entry: name_display = f"<span style='color: #ef4444; font-weight: bold; font-size: 13px; margin-right: 4px;'>[新]</span>{name_display}"
 
                 item_html = f'''
                 <tr style="border-bottom: 1px solid #f1f5f9; height: 50px;">
                     <td style="padding: 10px 8px; font-family: monospace; color: #475569; font-size: 15px; font-weight: 600; white-space: nowrap;">{base_code}</td>
-                    <td style="padding: 10px 8px; text-align: left; font-weight: 700; color: #1e293b; font-size: 16px; white-space: nowrap;">{name_display}</td>
+                    <td style="padding: 10px 8px; text-align: left; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; font-weight: 700; color: #1e293b; font-size: 16px;">{name_display}</td>
                     <td style="padding: 10px 8px; text-align: right; font-weight: 900; font-size: 16px; white-space: nowrap;" class="{'val-buy' if is_buy else 'val-sell'}">{qty_str}</td>
                 </tr>
                 '''
@@ -265,14 +267,15 @@ def generate():
             if not buy_html: buy_html = '<tr><td colspan="3" style="text-align: center; padding: 20px; color: #94a3b8; font-size: 14px; white-space: nowrap;">- 今日無買進動作 -</td></tr>'
             if not sell_html: sell_html = '<tr><td colspan="3" style="text-align: center; padding: 20px; color: #94a3b8; font-size: 14px; white-space: nowrap;">- 今日無賣出動作 -</td></tr>'
 
+            # 🌟 table-layout: fixed 強制所有 ETF 欄寬一致
             table_header_template = '''
-            <div style="overflow-x: auto;">
-                <table style="width: 100%; border-collapse: collapse; text-align: left; background-color: #fff; min-width: 280px;">
+            <div>
+                <table style="width: 100%; border-collapse: collapse; text-align: left; background-color: #fff; table-layout: fixed;">
                     <thead>
                         <tr style="background-color: #f8fafc; border-bottom: 2px solid #e2e8f0; height: 40px; color: #475569; font-size: 14px; font-weight: bold;">
-                            <th style="padding: 8px; white-space: nowrap;">代號</th>
+                            <th style="padding: 8px; width: 75px; white-space: nowrap;">代號</th>
                             <th style="padding: 8px; text-align: left; white-space: nowrap;">股名</th>
-                            <th style="padding: 8px; text-align: right; white-space: nowrap;">異動股數</th>
+                            <th style="padding: 8px; width: 110px; text-align: right; white-space: nowrap;">異動股數</th>
                         </tr>
                     </thead>
                     <tbody>
