@@ -15,7 +15,7 @@ STOCK_NAME_MAP = {
     "GOOGL": "谷歌", "META": "臉書", "TSLA": "特斯拉", "AMD": "超微", 
     "AVGO": "博通", "TXN": "德儀", "QCOM": "高通", "MU": "美光", 
     "INTC": "英特爾", "CRWD": "資安雲", "ASML": "艾司摩爾",
-    "SNDK": "閃迪", "WDC": "威騰", "IFX": "英飛凌", "BE": "布魯姆能源", 
+    "SNDK": "威騰", "WDC": "威騰", "IFX": "英飛凌", "BE": "半導體設備", 
     "DDOG": "資料狗", "AXTI": "AXT", "MRVL": "邁威爾", "LITE": "朗美通",
     "6857": "愛德萬", "7011": "三菱重工", "9984": "軟銀", "8035": "東京威力", 
     "285A": "鎧俠", "6787": "名幸電子", "6981": "村田製作", "009150": "三星電機",
@@ -57,8 +57,9 @@ def smart_read_and_clean(filepaths):
                     row_vals = [str(x).strip().replace(',', '') for x in df.iloc[i].values if pd.notna(x)]
                     row_str = "".join(row_vals)
                     
+                    # 🌟 復華專屬雷達：看見關鍵字就啟動，往下尋找巨大數字
                     if not fund_size:
-                        if any(k in row_str for k in ['規模', '淨資產', '資產淨值', '資產價值', '淨值總額']):
+                        if any(k in row_str for k in ['規模', '淨資產', '資產價值', '淨值總額']):
                             look_for_fund = True
                         
                         if look_for_fund:
@@ -66,7 +67,7 @@ def smart_read_and_clean(filepaths):
                             for v in vals:
                                 try:
                                     val = float(v)
-                                    if val > 10000000: 
+                                    if val > 10000000: # 只要大於1000萬台幣，就認定是規模
                                         fund_size = f"{val / 100000000:.2f} 億"
                                         look_for_fund = False
                                         break
@@ -128,7 +129,7 @@ def smart_read_and_clean(filepaths):
     return None, fund_size, st_wt_raw, ca_wt_raw
 
 def generate():
-    print(f"▶ 啟動 ETF 報表產出工具 (響應式排版修正版)...")
+    print("▶ 啟動 ETF 報表優化產出工具...")
     os.makedirs('dist', exist_ok=True)
     all_files = [f for f in glob.glob(os.path.join('data', "*")) if not os.path.basename(f).startswith('.')]
     if not all_files:
@@ -149,12 +150,12 @@ def generate():
             all_dates.add(date_str)
 
     sorted_dates = sorted(list(all_dates), reverse=True)
-    trend_cache = defaultdict(dict)
+    print(f"📂 成功掃描歷史日期數: {len(sorted_dates)}")
 
     with open('templates/index.html', 'r', encoding='utf-8') as f: html_template = f.read()
 
     for target_date in sorted_dates:
-        print(f"⚙️ 正在建構 [{target_date}] 的報表與走勢圖...")
+        print(f"⚙️ 正在建構 [{target_date}] 的報表...")
         etf_blocks_html = ""
         macro_rows_html = "" 
 
@@ -178,8 +179,6 @@ def generate():
             valid_holdings = df_today[~df_today['Code'].astype(str).str.contains('元|現金|nan|小計|合計|總計', case=False, na=False)]
             st_wt = st_wt_raw if st_wt_raw is not None else valid_holdings['Weight'].sum()
             ca_wt = ca_wt_raw if ca_wt_raw is not None else (max(0, 100.0 - st_wt) if st_wt > 0 else 0)
-            
-            trend_cache[etf_code][actual_date] = st_wt
 
             if has_yest and df_yest is not None:
                 valid_holdings_yest = df_yest[~df_yest['Code'].astype(str).str.contains('元|現金|nan|小計|合計|總計', case=False, na=False)]
@@ -190,17 +189,17 @@ def generate():
                 elif weight_diff < -0.05: action_badge = f'<span style="color: #991b1b; font-weight: bold;">減碼 {diff_sign}{weight_diff:.2f}% 📉</span>'
                 else: action_badge = '<span style="color: #475569;">水位持平 ⚖️</span>'
             else:
-                action_badge = '<span style="color: #64748b; font-style: italic;">無對比資料</span>'
+                action_badge = '<span style="color: #64748b; font-style: italic;">無對比</span>'
 
             date_tag = f'<span style="font-size: 13px; color: #ef4444; margin-left: 8px;">(資料: {actual_date[4:6]}/{actual_date[6:8]})</span>' if actual_date != target_date else ""
             size_badge = f'<span style="font-size: 14px; font-weight: 600; color: #0f172a; margin-left: 12px; background: #e2e8f0; padding: 4px 10px; border-radius: 20px;">規模: {size_today}</span>' if size_today else ""
             ratio_badge = f'<span style="font-size: 14px; font-weight: 600; color: #166534; margin-left: 8px; background: #dcfce7; padding: 4px 10px; border-radius: 20px;">總持股 {st_wt:.2f}% | 現金 {ca_wt:.2f}%</span>' if st_wt > 0 else ""
 
+            print(f"  📊 {etf_code} (資料:{actual_date}) -> 總持股: {st_wt:.2f}%, 規模: {size_today or '無'}")
+
             etf_name = ETF_MAPPING.get(etf_code, "其他投信成分股")
-            
-            # 🌟 修正點：加入 white-space: nowrap 強制不准換行
             macro_rows_html += f'''
-            <tr style="border-bottom: 1px solid #e2e8f0; height: 45px; font-size: 15px; white-space: nowrap;">
+            <tr style="border-bottom: 1px solid #e2e8f0; height: 45px; font-size: 15px;">
                 <td style="padding: 10px; font-family: monospace; font-weight: bold; color: #1e293b;">{etf_code}</td>
                 <td style="padding: 10px; font-weight: 700; color: #334155; text-align: left;">{etf_name} {date_tag}</td>
                 <td style="padding: 10px; text-align: right; color: #475569; font-weight: 600;">{size_today or '-'}</td>
@@ -209,107 +208,6 @@ def generate():
                 <td style="padding: 10px; text-align: right;">{action_badge}</td>
             </tr>
             '''
-
-            chart_labels = []
-            chart_data = []
-            chart_dates = list(available_dates) 
-            chart_dates.reverse() 
-            
-            for cd in chart_dates:
-                if cd not in trend_cache[etf_code]:
-                    res_c = smart_read_and_clean(dates_files[cd])
-                    if res_c[0] is not None:
-                        df_c, sz_c, st_raw_c, ca_raw_c = res_c
-                        vh_c = df_c[~df_c['Code'].astype(str).str.contains('元|現金|nan|小計|合計|總計', case=False, na=False)]
-                        trend_cache[etf_code][cd] = st_raw_c if st_raw_c is not None else vh_c['Weight'].sum()
-                    else:
-                        trend_cache[etf_code][cd] = 0
-                        
-                st_val = trend_cache[etf_code][cd]
-                if st_val > 0:
-                    chart_labels.append(f"'{cd[4:6]}/{cd[6:8]}'")
-                    chart_data.append(f"{st_val:.2f}")
-
-            chart_html = ""
-            if len(chart_data) > 1:
-                chart_id = f"chart_{etf_code}_{target_date}"
-                chart_html = f'''
-                <details style="margin-top: 15px; margin-bottom: 15px; outline: none;">
-                    <summary style="cursor: pointer; color: #0284c7; font-weight: bold; font-size: 15px; padding: 10px 15px; background: #f0f9ff; border-radius: 8px; border: 1px dashed #7dd3fc; list-style: none; display: inline-block;">
-                        📈 點擊展開：持股水位連續走勢圖
-                    </summary>
-                    <div style="margin-top: 10px; padding: 15px; background: #fff; border-radius: 8px; border: 1px solid #e2e8f0; box-shadow: inset 0 2px 4px rgba(0,0,0,0.02);">
-                        
-                        <div style="text-align: right; margin-bottom: 10px;">
-                            <label style="font-size: 14px; font-weight: bold; color: #475569; margin-right: 8px;">選擇走勢區間：</label>
-                            <select id="select_{chart_id}" onchange="updateChart_{chart_id}(this.value)" style="padding: 6px 12px; border-radius: 6px; border: 1px solid #cbd5e1; font-family: inherit; font-size: 14px; cursor: pointer; background-color: #f8fafc;">
-                                <option value="all" selected>全部歷史 (從有紀錄至今)</option>
-                                <option value="10">近 10 日</option>
-                                <option value="30">近 30 日</option>
-                                <option value="60">近 60 日</option>
-                            </select>
-                        </div>
-
-                        <div style="position: relative; height: 250px; width: 100%;">
-                            <canvas id="{chart_id}"></canvas>
-                        </div>
-                    </div>
-                </details>
-                <script>
-                const allLabels_{chart_id} = [{','.join(chart_labels)}];
-                const allData_{chart_id} = [{','.join(chart_data)}];
-                let chartInst_{chart_id} = null;
-
-                function updateChart_{chart_id}(days) {{
-                    let labels = allLabels_{chart_id};
-                    let data = allData_{chart_id};
-                    
-                    if (days !== 'all') {{
-                        const sliceCount = parseInt(days, 10);
-                        labels = labels.slice(-sliceCount);
-                        data = data.slice(-sliceCount);
-                    }}
-                    
-                    if (chartInst_{chart_id}) {{
-                        chartInst_{chart_id}.destroy();
-                    }}
-                    
-                    const ctx = document.getElementById('{chart_id}').getContext('2d');
-                    chartInst_{chart_id} = new Chart(ctx, {{
-                        type: 'line',
-                        data: {{
-                            labels: labels,
-                            datasets: [{{
-                                label: '總持股比例 (%)',
-                                data: data,
-                                borderColor: '#0284c7',
-                                backgroundColor: 'rgba(2, 132, 199, 0.1)',
-                                borderWidth: 2,
-                                pointBackgroundColor: '#0ea5e9',
-                                pointRadius: 4,
-                                fill: true,
-                                tension: 0.3
-                            }}]
-                        }},
-                        options: {{
-                            responsive: true,
-                            maintainAspectRatio: false,
-                            plugins: {{ legend: {{ display: false }} }},
-                            scales: {{
-                                y: {{ 
-                                    suggestedMin: Math.min(...data) - 0.5, 
-                                    suggestedMax: Math.max(...data) + 0.5 
-                                }}
-                            }}
-                        }}
-                    }});
-                }}
-
-                document.addEventListener("DOMContentLoaded", function() {{
-                    updateChart_{chart_id}('all');
-                }});
-                </script>
-                '''
 
             top20_html = ""
             for rank, row in enumerate(valid_holdings.sort_values(by=['Weight', 'Qty'], ascending=[False, False]).head(20).itertuples(), 1):
@@ -350,18 +248,17 @@ def generate():
 
             table_head = '<div><table style="width: 100%; border-collapse: collapse; text-align: left; background-color: #fff; table-layout: fixed;"><thead><tr style="background-color: #f8fafc; border-bottom: 2px solid #e2e8f0; height: 40px; color: #475569; font-size: 14px; font-weight: bold;"><th style="padding: 8px; width: 75px; white-space: nowrap;">代號</th><th style="padding: 8px; text-align: left; white-space: nowrap;">股名</th><th style="padding: 8px; width: 110px; text-align: right; white-space: nowrap;">異動股數</th></tr></thead><tbody>'
             
-            etf_blocks_html += f'<div class="etf-section"><div class="etf-title" style="display: flex; align-items: center; flex-wrap: wrap; gap: 4px;"><span>{etf_code}</span> {etf_name} {date_tag} {size_badge} {ratio_badge}</div>{chart_html}<div class="tables-grid"><div class="table-box" style="background-color: #fff; border: 1px solid #e2e8f0; border-radius: 8px; overflow: hidden; box-shadow: 0 1px 3px rgba(0,0,0,0.05);"><div class="box-header header-buy" style="font-size: 15px; padding: 12px 16px; font-weight: bold;">買進成分股 (共 {buy_count} 檔)</div>{table_head}{buy_html}</tbody></table></div></div><div class="table-box" style="background-color: #fff; border: 1px solid #e2e8f0; border-radius: 8px; overflow: hidden; box-shadow: 0 1px 3px rgba(0,0,0,0.05);"><div class="box-header header-sell" style="font-size: 15px; padding: 12px 16px; font-weight: bold;">賣出成分股 (共 {sell_count} 檔)</div>{table_head}{sell_html}</tbody></table></div></div></div>{top20_block}</div>'
+            etf_blocks_html += f'<div class="etf-section"><div class="etf-title" style="display: flex; align-items: center; flex-wrap: wrap; gap: 4px;"><span>{etf_code}</span> {etf_name} {date_tag} {size_badge} {ratio_badge}</div><div class="tables-grid"><div class="table-box" style="background-color: #fff; border: 1px solid #e2e8f0; border-radius: 8px; overflow: hidden; box-shadow: 0 1px 3px rgba(0,0,0,0.05);"><div class="box-header header-buy" style="font-size: 15px; padding: 12px 16px; font-weight: bold;">買進成分股 (共 {buy_count} 檔)</div>{table_head}{buy_html}</tbody></table></div></div><div class="table-box" style="background-color: #fff; border: 1px solid #e2e8f0; border-radius: 8px; overflow: hidden; box-shadow: 0 1px 3px rgba(0,0,0,0.05);"><div class="box-header header-sell" style="font-size: 15px; padding: 12px 16px; font-weight: bold;">賣出成分股 (共 {sell_count} 檔)</div>{table_head}{sell_html}</tbody></table></div></div></div>{top20_block}</div>'
 
         macro_dashboard_html = ""
         if macro_rows_html:
-            # 🌟 修正點：加大 min-width 到 750px，並在 thead 加入 white-space: nowrap
             macro_dashboard_html = f'''
             <div class="macro-dashboard" style="margin-top: 20px; margin-bottom: 35px; background: #ffffff; border: 1px solid #cbd5e1; border-radius: 12px; padding: 20px; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05);">
                 <h2 style="margin-top: 0; color: #0f172a; font-size: 18px; margin-bottom: 15px;">📊 經理人多空水位大盤看板 (自動抓取最新)</h2>
                 <div style="overflow-x: auto;">
-                    <table style="width: 100%; border-collapse: collapse; text-align: left; min-width: 750px;">
+                    <table style="width: 100%; border-collapse: collapse; text-align: left; min-width: 600px;">
                         <thead>
-                            <tr style="background-color: #f1f5f9; border-bottom: 2px solid #cbd5e1; height: 42px; color: #334155; font-size: 14px; font-weight: bold; white-space: nowrap;">
+                            <tr style="background-color: #f1f5f9; border-bottom: 2px solid #cbd5e1; height: 42px; color: #334155; font-size: 14px; font-weight: bold;">
                                 <th style="padding: 10px; width: 95px;">ETF 代號</th>
                                 <th style="padding: 10px; text-align: left;">ETF 名稱</th>
                                 <th style="padding: 10px; width: 110px; text-align: right;">基金規模</th>
@@ -387,11 +284,8 @@ def generate():
         if len(sorted_dates) > 5: menu_html += '</div></details>'
         menu_html += '</div>'
 
-        full_page = re.sub(r'<div class="date-badge">.*?</div>', f'<div class="date-badge">看板更新日期：{target_date[:4]}/{target_date[4:6]}/{target_date[6:8]}</div>', html_template)
+        full_page = html_template.replace('<div class="date-badge">資料更新完畢</div>', f'<div class="date-badge">看板更新日期：{target_date[:4]}/{target_date[4:6]}/{target_date[6:8]}</div>')
         
-        if '<head>' in full_page and 'chart.js' not in full_page.lower():
-            full_page = full_page.replace('<head>', '<head>\n    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>')
-
         if '<div id="content"></div>' in full_page:
             full_page = full_page.replace('<div id="content"></div>', menu_html + macro_dashboard_html + etf_blocks_html)
         else:
