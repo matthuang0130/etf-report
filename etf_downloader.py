@@ -58,30 +58,26 @@ def run_download():
             print("  ✅ 00991A 下載成功")
     except Exception as e: print(f"  ❌ 00991A 失敗: {e}")
 
-    # 2. 安聯 0402A (無下載按鈕，直接暴力擷取網頁表格)
+    # 2. 安聯 0402A
     print("🌐 抓取 0402A (安聯)...")
     temp_folder = "temp_402"
     try:
         if not os.path.exists(temp_folder): os.makedirs(temp_folder)
         driver = get_driver(temp_folder)
         driver.get("https://etf.allianzgi.com.tw/etf-info/E0003?tab=4")
-        time.sleep(10) # 讓安聯網頁充分載入
-        
+        time.sleep(10)
         print("  ⚡ 展開安聯網頁所有隱藏持股...")
         while True:
             try:
                 more_btns = driver.find_elements(By.XPATH, "//*[contains(text(), '顯示更多')]")
                 visible_btns = [b for b in more_btns if b.is_displayed()]
-                if not visible_btns:
-                    break
+                if not visible_btns: break
                 driver.execute_script("arguments[0].scrollIntoView({block: 'center'});", visible_btns[0])
                 time.sleep(1)
                 driver.execute_script("arguments[0].click();", visible_btns[0])
                 time.sleep(2)
-            except:
-                break
-                
-        print("  ⚡ 直接擷取安聯網頁表格資料...")
+            except: break
+        
         tables = driver.find_elements(By.TAG_NAME, "table")
         target_data = []
         for table in tables:
@@ -90,10 +86,7 @@ def run_download():
             for row in rows:
                 cols = row.find_elements(By.XPATH, ".//th | .//td")
                 cols_text = [c.text.strip() for c in cols]
-                if len(cols_text) >= 3 and any(cols_text):
-                    data.append(cols_text)
-            
-            # 確保這是持股表格
+                if len(cols_text) >= 3 and any(cols_text): data.append(cols_text)
             if data and any('代號' in str(c) or '名稱' in str(c) or '股票' in str(c) for c in data[0]):
                 target_data = data
                 break
@@ -101,14 +94,10 @@ def run_download():
         if len(target_data) > 1:
             columns = target_data[0]
             df = pd.DataFrame(target_data[1:], columns=columns)
-            
-            # 過濾掉包含「顯示更多」、「收合」或「合計」的雜訊列
             df = df[~df.astype(str).apply(lambda x: x.str.contains('顯示更多|收合|合計')).any(axis=1)]
-            
             df.to_excel(f"data/0402A_{today_str}.xlsx", index=False)
             print(f"  ✅ 0402A 成功擷取並自動存檔為 data/0402A_{today_str}.xlsx")
-        else:
-            print("  ❌ 0402A 失敗: 無法從網頁擷取到持股表格。")
+        else: print("  ❌ 0402A 失敗: 無法從網頁擷取到持股表格。")
     except Exception as e: print(f"  ❌ 0402A 失敗: {e}")
     finally:
         try: driver.quit()
@@ -116,7 +105,7 @@ def run_download():
         try: shutil.rmtree(temp_folder, ignore_errors=True)
         except: pass
 
-    # 3. 富邦 00405A (精準點擊 ID)
+    # 3. 富邦 00405A
     print("🌐 抓取 00405A...")
     temp_folder = "temp_405"
     try:
@@ -155,26 +144,68 @@ def run_download():
             try: shutil.rmtree(temp_folder, ignore_errors=True)
             except: pass
 
-    # 7. 群益 00992A
-    print("🌐 抓取 00992A...")
-    temp_folder = "temp_992"
+    # 🌟 7. 群益 (改為自動跑 00992A 與新增的 00997A 迴圈)
+    qunyi_etfs = [("00992A", "500"), ("00997A", "502")]
+    for code, pid in qunyi_etfs:
+        print(f"🌐 抓取 {code} (群益)...")
+        temp_folder = f"temp_{code.lower()}"
+        try:
+            if not os.path.exists(temp_folder): os.makedirs(temp_folder)
+            driver = get_driver(temp_folder)
+            driver.get(f"https://www.capitalfund.com.tw/etf/product/detail/{pid}/portfolio")
+            time.sleep(8) 
+            btns = driver.find_elements(By.XPATH, "//*[contains(text(), '下載資料') or contains(text(), '匯出')]")
+            clicked = False
+            for btn in btns:
+                if btn.is_displayed():
+                    driver.execute_script("arguments[0].scrollIntoView({block: 'center'});", btn)
+                    driver.execute_script("arguments[0].click();", btn)
+                    clicked = True
+                    break
+            if not clicked and btns:
+                driver.execute_script("arguments[0].click();", btns[0])
+            standardize_file(temp_folder, code, today_str)
+        except Exception as e: print(f"  ❌ {code} 失敗: {e}")
+        finally:
+            try: driver.quit()
+            except: pass
+            try: shutil.rmtree(temp_folder, ignore_errors=True)
+            except: pass
+
+    # 8. 中信 00406A
+    print("🌐 抓取 00406A (中信)...")
+    temp_folder = "temp_406"
     try:
         if not os.path.exists(temp_folder): os.makedirs(temp_folder)
         driver = get_driver(temp_folder)
-        driver.get("https://www.capitalfund.com.tw/etf/product/detail/500/portfolio")
-        time.sleep(8) 
-        btns = driver.find_elements(By.XPATH, "//*[contains(text(), '下載資料') or contains(text(), '匯出')]")
-        clicked = False
-        for btn in btns:
-            if btn.is_displayed():
-                driver.execute_script("arguments[0].scrollIntoView({block: 'center'});", btn)
-                driver.execute_script("arguments[0].click();", btn)
-                clicked = True
-                break
-        if not clicked and btns:
-            driver.execute_script("arguments[0].click();", btns[0])
-        standardize_file(temp_folder, "00992A", today_str)
-    except Exception as e: print(f"  ❌ 00992A 失敗: {e}")
+        driver.get("https://www.ctbcinvestments.com/Etf/00682450/Combination")
+        
+        print("  ⚡ 等待中信網頁載入，鎖定下載按鈕...")
+        time.sleep(15)
+        
+        js_script = """
+        var tags = ['button', 'a', 'div', 'span'];
+        for (var t of tags) {
+            var els = document.querySelectorAll(t);
+            for (var i = 0; i < els.length; i++) {
+                var text = (els[i].textContent || '').replace(/\\s+/g, '').toUpperCase();
+                if (text.includes('下載EXCEL') || text === 'EXCEL') {
+                    els[i].click();
+                    return true;
+                }
+            }
+        }
+        return false;
+        """
+        clicked = driver.execute_script(js_script)
+        
+        if clicked:
+            print("  ⚡ 成功觸發 EXCEL 下載按鈕！")
+            standardize_file(temp_folder, "00406A", today_str)
+        else:
+            print("  ❌ 00406A 失敗: JS 核心腳本也找不到 EXCEL 按鈕。")
+
+    except Exception as e: print(f"  ❌ 00406A 失敗: {e}")
     finally:
         try: driver.quit()
         except: pass
