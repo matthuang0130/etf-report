@@ -4,13 +4,12 @@ import glob
 import re
 import io
 import shutil
-import pickle    # 🌟 新增快取套件
-import hashlib   # 🌟 新增雜湊套件，用來辨識檔案
+import pickle
+import hashlib
 from collections import defaultdict
 
-# 🌟 設定連續圖要顯示的歷史天數
 CHART_DAYS = 30
-CACHE_DIR = "data/.cache"  # 隱藏的快取資料夾
+CACHE_DIR = "data/.cache"
 
 ETF_MAPPING = {
     "00403A": "統一升級50", "00981A": "統一台股增長", "00988A": "統一全球創新",
@@ -122,7 +121,6 @@ BASE_HTML = """
 
 _MEM_CACHE = {}
 
-# 🌟 光速快取包裝器：避免重複讀取相同的檔案
 def smart_read_and_clean(filepaths):
     if not os.path.exists(CACHE_DIR): os.makedirs(CACHE_DIR, exist_ok=True)
         
@@ -143,7 +141,6 @@ def smart_read_and_clean(filepaths):
                 return data
         except: pass
             
-    # 如果沒有快取，才去執行耗時的檔案解析
     data = _smart_read_and_clean_raw(filepaths)
     
     if data[0] is not None:
@@ -154,22 +151,27 @@ def smart_read_and_clean(filepaths):
     _MEM_CACHE[cache_key] = data
     return data
 
-
 def find_header_row(df):
     for i in range(min(50, len(df))): 
         row_str = "".join([str(x) for x in df.iloc[i].values if pd.notna(x)]).lower().replace(' ', '').replace('\n', '')
+        
+        # 🌟 期貨閃避雷達：遇到期貨或選擇權的標題直接無視，繼續往下掃描
+        if any(k in row_str for k in ['期貨代', '選擇權', '契約', '保證金']):
+            continue
+            
         has_code = ('代' in row_str or 'code' in row_str)
         has_target = any(k in row_str for k in ['權重', '比例', '股數', '數量', 'qty', 'weight', '%', '佔', '金額', '張', '持股'])
         if has_code and has_target: return i
     return -1
 
-# 原本耗時的解析函式改名
 def _smart_read_and_clean_raw(filepaths):
     fund_size, nav, st_wt_raw, ca_wt_raw = "", None, None, None
     all_clean_data = []
     
     for filepath in filepaths:
         if os.path.basename(filepath).startswith('~$'): continue
+        is_debug_target = "00981A" in filepath
+        
         try:
             if filepath.endswith('.csv'):
                 try: df_raw = pd.read_csv(filepath, encoding='utf-8', header=None, sep=None, engine='python')
@@ -192,7 +194,9 @@ def _smart_read_and_clean_raw(filepaths):
                             try:
                                 df_raw = pd.read_csv(filepath, encoding='big5', header=None, sep=None, engine='python')
                                 sheets = {'Sheet1': df_raw}
-                            except: continue
+                            except: 
+                                if is_debug_target: print(f"  [除錯] ❌ {os.path.basename(filepath)} 無法讀取")
+                                continue
 
             for sheet_name, df in sheets.items():
                 look_for_fund = False
@@ -242,14 +246,16 @@ def _smart_read_and_clean_raw(filepaths):
                                 except: pass
 
                 header_idx = find_header_row(df)
-                if header_idx == -1: continue 
+                if header_idx == -1: 
+                    continue 
 
                 df.columns = df.iloc[header_idx].astype(str)
 
+                # 🌟 確保不會被上方的期貨截斷，只攔截下方的干擾區塊
                 end_idx = len(df)
                 for j in range(header_idx + 1, len(df)):
                     row_str = "".join([str(x) for x in df.iloc[j].values if pd.notna(x)]).replace(' ', '')
-                    if any(k in row_str for k in ['期貨代碼', '商品代碼', '保證金', '選擇權', '期貨']):
+                    if any(k in row_str for k in ['商品代碼', '保證金專戶', '債券代碼']):
                         end_idx = j
                         break
                 
@@ -263,7 +269,8 @@ def _smart_read_and_clean_raw(filepaths):
                     elif not col_qty and ('股' in c_str or '張' in c_str or 'qty' in c_str or '數量' in c_str) and '權' not in c_str and '%' not in c_str: col_qty = c
                     elif not col_weight and ('權' in c_str or '比' in c_str or '%' in c_str or 'weight' in c_str): col_weight = c
 
-                if not (col_code and col_qty): continue
+                if not (col_code and col_qty):
+                    continue
 
                 cols_to_keep = [col_code, col_qty]
                 if col_name: cols_to_keep.append(col_name)
@@ -286,7 +293,8 @@ def _smart_read_and_clean_raw(filepaths):
                 clean_df['Qty'] = pd.to_numeric(clean_df['Qty'], errors='coerce')
                 clean_df = clean_df.dropna(subset=['Qty'])
                 all_clean_data.append(clean_df)
-        except Exception: pass
+        except Exception as e: 
+            pass
 
     if all_clean_data:
         combined = pd.concat(all_clean_data, ignore_index=True)
@@ -294,7 +302,7 @@ def _smart_read_and_clean_raw(filepaths):
     return None, fund_size, nav, st_wt_raw, ca_wt_raw
 
 def generate():
-    print(f"▶ 啟動 ETF 光速報表引擎 (啟用二級快取加速)...")
+    print(f"▶ 啟動 ETF 光速報表引擎 (防禦期貨干擾版)...")
     os.makedirs('dist', exist_ok=True)
     all_files = [f for f in glob.glob(os.path.join('data', "*")) if not os.path.basename(f).startswith('.')]
     if not all_files:
