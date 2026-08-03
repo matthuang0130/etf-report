@@ -2,6 +2,7 @@ import os
 import time
 import requests
 import shutil
+import re
 import pandas as pd
 from datetime import datetime
 from selenium import webdriver
@@ -67,6 +68,7 @@ def run_download():
         driver.get("https://etf.allianzgi.com.tw/etf-info/E0003?tab=4")
         time.sleep(10)
         print("  ⚡ 展開安聯網頁所有隱藏持股...")
+        
         while True:
             try:
                 more_btns = driver.find_elements(By.XPATH, "//*[contains(text(), '顯示更多')]")
@@ -92,10 +94,37 @@ def run_download():
                 break
                 
         if len(target_data) > 1:
+            # --- 🌟 破案修正：安聯網頁上的中文字是「基金淨值資產價值」，多了一個「值」，所以改用「資產價值」來定位 ---
+            nav_str, size_str, st_wt_str = "", "", ""
+            try:
+                page_text_clean = driver.find_element(By.TAG_NAME, "body").text.replace('\n', ' ').replace('\r', ' ')
+                
+                nav_match = re.search(r'單位淨值.*?(\d+\.\d+)', page_text_clean)
+                size_match = re.search(r'資產價值.*?([\d,]{7,})', page_text_clean) # 完美閃避奇葩翻譯
+                wt_match = re.search(r'股票.*?\(([\d\.]+)%\)', page_text_clean)
+                
+                if nav_match: nav_str = nav_match.group(1).strip()
+                if size_match: size_str = size_match.group(1).replace(',', '').strip()
+                if wt_match: st_wt_str = wt_match.group(1).strip() + "%"
+                
+                print(f"  🔍 成功挖出隱藏數據 -> 淨值: {nav_str}, 規模: {size_str}, 股票比例: {st_wt_str}")
+            except Exception as e:
+                print("  ⚠️ 淨值/規模抓取失敗，但仍將產出持股:", e)
+            # ----------------------------------------------------
+
             columns = target_data[0]
             df = pd.DataFrame(target_data[1:], columns=columns)
             df = df[~df.astype(str).apply(lambda x: x.str.contains('顯示更多|收合|合計')).any(axis=1)]
-            df.to_excel(f"data/0402A_{today_str}.xlsx", index=False)
+            
+            # 將成功抓到的數據塞入 Excel 頂部
+            out_data = []
+            if size_str: out_data.append(["基金淨資產價值", size_str] + [""] * (len(columns) - 2))
+            if nav_str: out_data.append(["基金每單位淨值", nav_str] + [""] * (len(columns) - 2))
+            if st_wt_str: out_data.append(["股票", st_wt_str] + [""] * (len(columns) - 2))
+            out_data.append(columns)
+            out_data.extend(df.values.tolist())
+            
+            pd.DataFrame(out_data).to_excel(f"data/0402A_{today_str}.xlsx", index=False, header=False)
             print(f"  ✅ 0402A 成功擷取並自動存檔為 data/0402A_{today_str}.xlsx")
         else: print("  ❌ 0402A 失敗: 無法從網頁擷取到持股表格。")
     except Exception as e: print(f"  ❌ 0402A 失敗: {e}")
@@ -144,7 +173,7 @@ def run_download():
             try: shutil.rmtree(temp_folder, ignore_errors=True)
             except: pass
 
-    # 🌟 7. 群益 (改為自動跑 00992A 與新增的 00997A 迴圈)
+    # 7. 群益
     qunyi_etfs = [("00992A", "500"), ("00997A", "502")]
     for code, pid in qunyi_etfs:
         print(f"🌐 抓取 {code} (群益)...")

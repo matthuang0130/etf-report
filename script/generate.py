@@ -3,11 +3,14 @@ import os
 import glob
 import re
 import io
-import shutil # 🌟 新增 shutil 模組，確保 index.html 強制生成
+import shutil
+import pickle    # 🌟 新增快取套件
+import hashlib   # 🌟 新增雜湊套件，用來辨識檔案
 from collections import defaultdict
 
 # 🌟 設定連續圖要顯示的歷史天數
 CHART_DAYS = 30
+CACHE_DIR = "data/.cache"  # 隱藏的快取資料夾
 
 ETF_MAPPING = {
     "00403A": "統一升級50", "00981A": "統一台股增長", "00988A": "統一全球創新",
@@ -117,16 +120,51 @@ BASE_HTML = """
 </html>
 """
 
+_MEM_CACHE = {}
+
+# 🌟 光速快取包裝器：避免重複讀取相同的檔案
+def smart_read_and_clean(filepaths):
+    if not os.path.exists(CACHE_DIR): os.makedirs(CACHE_DIR, exist_ok=True)
+        
+    try: mtimes = "_".join([str(os.path.getmtime(f)) for f in filepaths])
+    except: mtimes = "unknown"
+    
+    raw_key = f"{'_'.join(filepaths)}_{mtimes}"
+    cache_key = hashlib.md5(raw_key.encode('utf-8')).hexdigest()
+    
+    if cache_key in _MEM_CACHE: return _MEM_CACHE[cache_key]
+        
+    cache_path = os.path.join(CACHE_DIR, f"{cache_key}.pkl")
+    if os.path.exists(cache_path):
+        try:
+            with open(cache_path, 'rb') as f:
+                data = pickle.load(f)
+                _MEM_CACHE[cache_key] = data
+                return data
+        except: pass
+            
+    # 如果沒有快取，才去執行耗時的檔案解析
+    data = _smart_read_and_clean_raw(filepaths)
+    
+    if data[0] is not None:
+        try:
+            with open(cache_path, 'wb') as f: pickle.dump(data, f)
+        except Exception: pass
+            
+    _MEM_CACHE[cache_key] = data
+    return data
+
+
 def find_header_row(df):
     for i in range(min(50, len(df))): 
         row_str = "".join([str(x) for x in df.iloc[i].values if pd.notna(x)]).lower().replace(' ', '').replace('\n', '')
         has_code = ('代' in row_str or 'code' in row_str)
         has_target = any(k in row_str for k in ['權重', '比例', '股數', '數量', 'qty', 'weight', '%', '佔', '金額', '張', '持股'])
-        if has_code and has_target:
-            return i
+        if has_code and has_target: return i
     return -1
 
-def smart_read_and_clean(filepaths):
+# 原本耗時的解析函式改名
+def _smart_read_and_clean_raw(filepaths):
     fund_size, nav, st_wt_raw, ca_wt_raw = "", None, None, None
     all_clean_data = []
     
@@ -178,7 +216,6 @@ def smart_read_and_clean(filepaths):
                                         break
                                 except: pass
 
-                    # 🌟 最終修正：加入「淨資產」關鍵字，完美捕獲群益與安聯格式
                     if not nav:
                         if any(k in row_str.lower() for k in ['單位淨值', '每單位淨值', '淨值', 'nav', '淨資產', '資產淨值']):
                             look_for_nav = True
@@ -257,7 +294,7 @@ def smart_read_and_clean(filepaths):
     return None, fund_size, nav, st_wt_raw, ca_wt_raw
 
 def generate():
-    print(f"▶ 啟動 ETF 報表產出工具 (含報酬率回測與焦點籌碼)...")
+    print(f"▶ 啟動 ETF 光速報表引擎 (啟用二級快取加速)...")
     os.makedirs('dist', exist_ok=True)
     all_files = [f for f in glob.glob(os.path.join('data', "*")) if not os.path.basename(f).startswith('.')]
     if not all_files:
@@ -281,6 +318,7 @@ def generate():
     trend_cache = defaultdict(dict)
     daily_diff_data = defaultdict(lambda: defaultdict(lambda: defaultdict(lambda: {'diff': 0, 'name': ''})))
     
+    print("⏳ 載入歷史數據與運算差異...")
     for etf_code, dates_files in etf_history.items():
         etf_dates = sorted(list(dates_files.keys()))
         for idx in range(1, len(etf_dates)):
@@ -603,7 +641,6 @@ def generate():
         with open(f'dist/{target_date}.html', 'w', encoding='utf-8') as f: 
             f.write(full_page)
 
-    # 🌟 最終修正：使用 shutil 強制複製出 index.html
     if sorted_dates:
         latest_file = f'dist/{sorted_dates[0]}.html'
         index_file = 'dist/index.html'
