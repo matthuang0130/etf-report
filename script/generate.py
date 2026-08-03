@@ -155,7 +155,7 @@ def find_header_row(df):
     for i in range(min(50, len(df))): 
         row_str = "".join([str(x) for x in df.iloc[i].values if pd.notna(x)]).lower().replace(' ', '').replace('\n', '')
         
-        # 🌟 期貨閃避雷達：遇到期貨或選擇權的標題直接無視，繼續往下掃描
+        # 尋找標題時，依然無視上方的期貨，避免被 00981A 卡住
         if any(k in row_str for k in ['期貨代', '選擇權', '契約', '保證金']):
             continue
             
@@ -251,11 +251,11 @@ def _smart_read_and_clean_raw(filepaths):
 
                 df.columns = df.iloc[header_idx].astype(str)
 
-                # 🌟 確保不會被上方的期貨截斷，只攔截下方的干擾區塊
+                # 🌟 底部期貨煞車系統：只要在「股票明細下方」看到期貨或選擇權代碼，立刻切斷，防止權重爆表！
                 end_idx = len(df)
                 for j in range(header_idx + 1, len(df)):
                     row_str = "".join([str(x) for x in df.iloc[j].values if pd.notna(x)]).replace(' ', '')
-                    if any(k in row_str for k in ['商品代碼', '保證金專戶', '債券代碼']):
+                    if any(k in row_str for k in ['商品代碼', '保證金專戶', '債券代碼', '期貨代碼', '期貨名稱']):
                         end_idx = j
                         break
                 
@@ -302,7 +302,7 @@ def _smart_read_and_clean_raw(filepaths):
     return None, fund_size, nav, st_wt_raw, ca_wt_raw
 
 def generate():
-    print(f"▶ 啟動 ETF 光速報表引擎 (防禦期貨干擾版)...")
+    print(f"▶ 啟動 ETF 光速報表引擎 (底部期貨防護版)...")
     os.makedirs('dist', exist_ok=True)
     all_files = [f for f in glob.glob(os.path.join('data', "*")) if not os.path.basename(f).startswith('.')]
     if not all_files:
