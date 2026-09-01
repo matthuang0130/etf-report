@@ -16,7 +16,8 @@ ETF_MAPPING = {
     "00991A": "復華未來50", "00992A": "群益科技",
     "00405A": "富邦台灣龍耀", "00402A": "安聯美國科技",
     "00406A": "中信台灣收益成長",
-    "00997A": "群益美國增長"
+    "00997A": "群益美國增長",
+    "00409A": "復華全球50"   # 🌟 新增復華主動全球50
 }
 
 STOCK_NAME_MAP = {
@@ -155,7 +156,7 @@ def find_header_row(df):
     for i in range(min(50, len(df))): 
         row_str = "".join([str(x) for x in df.iloc[i].values if pd.notna(x)]).lower().replace(' ', '').replace('\n', '')
         
-        # 尋找標題時，依然無視上方的期貨，避免被 00981A 卡住
+        # 無視期貨標題
         if any(k in row_str for k in ['期貨代', '選擇權', '契約', '保證金']):
             continue
             
@@ -251,7 +252,7 @@ def _smart_read_and_clean_raw(filepaths):
 
                 df.columns = df.iloc[header_idx].astype(str)
 
-                # 🌟 底部期貨煞車系統：只要在「股票明細下方」看到期貨或選擇權代碼，立刻切斷，防止權重爆表！
+                # 🌟 底部期貨煞車系統
                 end_idx = len(df)
                 for j in range(header_idx + 1, len(df)):
                     row_str = "".join([str(x) for x in df.iloc[j].values if pd.notna(x)]).replace(' ', '')

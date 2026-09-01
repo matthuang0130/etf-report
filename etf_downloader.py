@@ -50,14 +50,18 @@ def run_download():
     today_str = datetime.now().strftime("%Y%m%d")
     print(f"=== 開始執行下載任務: {today_str} ===")
 
-    # 1. 復華 00991A
-    try:
-        print("🌐 抓取 00991A...")
-        r = requests.get(f"https://www.fhtrust.com.tw/api/assetsExcel/ETF23/{today_str}", timeout=10)
-        if r.status_code == 200:
-            with open(f"data/00991A_{today_str}.xlsx", "wb") as f: f.write(r.content)
-            print("  ✅ 00991A 下載成功")
-    except Exception as e: print(f"  ❌ 00991A 失敗: {e}")
+    # 1. 復華 (00991A 與 00409A)
+    fuhwa_etfs = [("00991A", "ETF23"), ("00409A", "ETF26")]
+    for code, api_code in fuhwa_etfs:
+        try:
+            print(f"🌐 抓取 {code} (復華)...")
+            r = requests.get(f"https://www.fhtrust.com.tw/api/assetsExcel/{api_code}/{today_str}", timeout=10)
+            if r.status_code == 200:
+                with open(f"data/{code}_{today_str}.xlsx", "wb") as f: f.write(r.content)
+                print(f"  ✅ {code} 下載成功")
+            else:
+                print(f"  ❌ {code} 失敗: 伺服器回傳代碼 {r.status_code}")
+        except Exception as e: print(f"  ❌ {code} 失敗: {e}")
 
     # 2. 安聯 0402A
     print("🌐 抓取 0402A (安聯)...")
@@ -94,13 +98,12 @@ def run_download():
                 break
                 
         if len(target_data) > 1:
-            # --- 🌟 破案修正：安聯網頁上的中文字是「基金淨值資產價值」，多了一個「值」，所以改用「資產價值」來定位 ---
             nav_str, size_str, st_wt_str = "", "", ""
             try:
                 page_text_clean = driver.find_element(By.TAG_NAME, "body").text.replace('\n', ' ').replace('\r', ' ')
                 
                 nav_match = re.search(r'單位淨值.*?(\d+\.\d+)', page_text_clean)
-                size_match = re.search(r'資產價值.*?([\d,]{7,})', page_text_clean) # 完美閃避奇葩翻譯
+                size_match = re.search(r'資產價值.*?([\d,]{7,})', page_text_clean) 
                 wt_match = re.search(r'股票.*?\(([\d\.]+)%\)', page_text_clean)
                 
                 if nav_match: nav_str = nav_match.group(1).strip()
@@ -110,13 +113,11 @@ def run_download():
                 print(f"  🔍 成功挖出隱藏數據 -> 淨值: {nav_str}, 規模: {size_str}, 股票比例: {st_wt_str}")
             except Exception as e:
                 print("  ⚠️ 淨值/規模抓取失敗，但仍將產出持股:", e)
-            # ----------------------------------------------------
 
             columns = target_data[0]
             df = pd.DataFrame(target_data[1:], columns=columns)
             df = df[~df.astype(str).apply(lambda x: x.str.contains('顯示更多|收合|合計')).any(axis=1)]
             
-            # 將成功抓到的數據塞入 Excel 頂部
             out_data = []
             if size_str: out_data.append(["基金淨資產價值", size_str] + [""] * (len(columns) - 2))
             if nav_str: out_data.append(["基金每單位淨值", nav_str] + [""] * (len(columns) - 2))
