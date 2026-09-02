@@ -4,7 +4,7 @@ import requests
 import shutil
 import re
 import pandas as pd
-from datetime import datetime
+from datetime import datetime, timedelta  # 🌟 新增 timedelta 來計算回溯日期
 from selenium import webdriver
 from selenium.webdriver.chrome.service import Service
 from selenium.webdriver.chrome.options import Options
@@ -50,18 +50,32 @@ def run_download():
     today_str = datetime.now().strftime("%Y%m%d")
     print(f"=== 開始執行下載任務: {today_str} ===")
 
-    # 1. 復華 (00991A 與 00409A)
+    # 1. 復華 (00991A 與 00409A) - 🌟 加入自動回溯機制
     fuhwa_etfs = [("00991A", "ETF23"), ("00409A", "ETF26")]
+    headers = {'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36'}
+    
     for code, api_code in fuhwa_etfs:
         try:
             print(f"🌐 抓取 {code} (復華)...")
-            r = requests.get(f"https://www.fhtrust.com.tw/api/assetsExcel/{api_code}/{today_str}", timeout=10)
-            if r.status_code == 200:
-                with open(f"data/{code}_{today_str}.xlsx", "wb") as f: f.write(r.content)
-                print(f"  ✅ {code} 下載成功")
-            else:
-                print(f"  ❌ {code} 失敗: 伺服器回傳代碼 {r.status_code}")
-        except Exception as e: print(f"  ❌ {code} 失敗: {e}")
+            success = False
+            # 往前找最多 5 天的檔案 (避開假日與未更新的時間差)
+            for offset in range(5):
+                target_date = (datetime.now() - timedelta(days=offset)).strftime("%Y%m%d")
+                url = f"https://www.fhtrust.com.tw/api/assetsExcel/{api_code}/{target_date}"
+                r = requests.get(url, headers=headers, timeout=10)
+                
+                # 如果狀態碼是 200 且檔案大於 1KB (不是空的錯誤檔)
+                if r.status_code == 200 and len(r.content) > 1000:
+                    with open(f"data/{code}_{target_date}.xlsx", "wb") as f: 
+                        f.write(r.content)
+                    print(f"  ✅ {code} 下載成功 (資料日期: {target_date})")
+                    success = True
+                    break
+            
+            if not success:
+                print(f"  ❌ {code} 失敗: 往前追溯 5 日皆無有效檔案")
+        except Exception as e: 
+            print(f"  ❌ {code} 失敗: {e}")
 
     # 2. 安聯 0402A
     print("🌐 抓取 0402A (安聯)...")
