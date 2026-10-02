@@ -56,20 +56,22 @@
         details.chart-details>summary{list-style:none;cursor:pointer;background:#f0f9ff;border:1px dashed #7dd3fc;color:#0284c7;padding:10px 15px;border-radius:8px;font-size:15px;font-weight:bold;} 
         details.chart-details>summary::-webkit-details-marker{display:none;}
         
-        /* 🔥 新增：大盤看板 UI 進化與手機版響應式設定 */
+        /* 🔥 修正：大盤看板 UI 緊湊化與斑馬紋設計 */
         .macro-dashboard table { border-collapse: collapse; width: 100%; min-width: 100%; }
         .macro-dashboard th, .macro-dashboard td { border-bottom: 1px solid #e2e8f0; }
-        .macro-row { transition: background-color 0.2s ease; }
-        .macro-row:hover { background-color: #f8fafc; }
-        .macro-row:hover .freeze-col { background-color: #f8fafc; }
+        .macro-row { transition: background-color 0.2s ease; background-color: #fff; }
+        .macro-row:nth-child(even) { background-color: #f8fafc; } /* 斑馬紋底色 */
+        .macro-row:nth-child(even) .freeze-col { background-color: #f8fafc; } /* 斑馬紋的凍結欄底色 */
+        .macro-row:hover, .macro-row:hover .freeze-col { background-color: #f1f5f9; } /* 滑鼠移過的顏色 */
+        
         .freeze-col { position: sticky; left: 0; z-index: 2; border-right: 1px solid #e2e8f0; background-color: #fff; transition: background-color 0.2s ease; }
         .macro-dashboard thead th { position: sticky; top: 0; z-index: 1; background-color: #f1f5f9; border-bottom: 2px solid #cbd5e1; }
         .macro-dashboard thead th.freeze-col { z-index: 3; }
         .highlight-col { background-color: #f8fafc; }
+        .macro-row:nth-child(even) .highlight-col { background-color: #f1f5f9; }
         
-        /* 🔥 電腦版並排，手機版折疊的標籤設計 */
         .etf-info-cell { display: flex; align-items: center; gap: 10px; }
-        .etf-code-badge { background: #f1f5f9; color: #475569; padding: 3px 8px; border-radius: 6px; font-family: monospace; font-size: 13px; font-weight: bold; border: 1px solid #e2e8f0; }
+        .etf-code-badge { background: #e2e8f0; color: #475569; padding: 3px 8px; border-radius: 6px; font-family: monospace; font-size: 13px; font-weight: bold; border: 1px solid #cbd5e1; }
         
         @media (max-width: 768px) { 
             .hide-on-mobile { display: none !important; } 
@@ -97,145 +99,145 @@
         
         <div id="tab-summary" class="tab-content active">
             
-            <div class="macro-dashboard" style="background: #ffffff; border: 1px solid #cbd5e1; border-radius: 12px; padding: 15px; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05); margin-bottom: 25px;">
+            <div class="macro-dashboard" style="background: #ffffff; border: 1px solid #cbd5e1; border-radius: 12px; padding: 15px; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05); margin-bottom: 25px; max-width: 850px; margin-left: auto; margin-right: auto;">
                 <h2 style="margin-top: 0; color: #0f172a; font-size: 18px; margin-bottom: 15px; text-align: center;">🏆 ETF 近 10 日強弱勢自動排行</h2>
                 <div style="overflow-x: auto; border-radius: 8px; border: 1px solid #e2e8f0;">
                     <table>
                         <thead>
                             <tr style="height: 48px; color: #334155; font-size: 14px; font-weight: bold; white-space: nowrap;">
-                                <th class="freeze-col" style="padding: 12px 18px; width: 180px; text-align: left;">ETF 標的</th>
-                                <th class="hide-on-mobile" style="padding: 12px 18px; width: 100px; text-align: right;">規模</th>
-                                <th style="padding: 12px 18px; width: 90px; text-align: right;">淨值</th>
-                                <th style="padding: 12px 18px; width: 90px; text-align: right;">近 5 日</th>
-                                <th class="highlight-col" style="padding: 12px 18px; width: 100px; text-align: right; color: #1d4ed8; border-radius: 6px 6px 0 0;">🎯 10 日排名</th>
-                                <th class="hide-on-mobile" style="padding: 12px 18px; width: 90px; text-align: right;">近 30 日</th>
+                                <th class="freeze-col" style="padding: 12px 15px; width: 200px; text-align: left;">ETF 標的</th>
+                                <th class="hide-on-mobile" style="padding: 12px 15px; width: 100px; text-align: right;">規模</th>
+                                <th style="padding: 12px 15px; width: 90px; text-align: right;">淨值</th>
+                                <th style="padding: 12px 15px; width: 90px; text-align: right;">近 5 日</th>
+                                <th class="highlight-col" style="padding: 12px 15px; width: 110px; text-align: right; color: #1d4ed8; border-radius: 6px 6px 0 0;">🎯 10 日排名</th>
+                                <th class="hide-on-mobile" style="padding: 12px 15px; width: 90px; text-align: right;">近 30 日</th>
                             </tr>
                         </thead>
                         <tbody>
-            <tr class="macro-row" style="height: 56px; font-size: 15px; white-space: nowrap;">
-                <td class="freeze-col" style="padding: 12px 18px; text-align: left;">
+            <tr class="macro-row" style="height: 52px; font-size: 15px; white-space: nowrap;">
+                <td class="freeze-col" style="padding: 10px 15px; text-align: left;">
                     <div class="etf-info-cell">
                         <span class="etf-code-badge">00992A</span>
-                        <span style="font-weight: 700; color: #1e293b; font-size: 15px;">🥇 群益科技 </span>
+                        <span style="font-weight: 700; color: #1e293b; font-size: 15px;">🥇 群益科技</span>
                     </div>
                 </td>
-                <td class="hide-on-mobile" style="padding: 12px 18px; text-align: right; color: #475569; font-weight: 600;">415.32 億</td>
-                <td style="padding: 12px 18px; text-align: right; font-weight: 700; color: #1e293b;">17.35</td>
-                <td style="padding: 12px 18px; text-align: right;"><span style="color:#16a34a; font-weight:bold;">-3.56%</span></td>
-                <td class="highlight-col" style="padding: 12px 18px; text-align: right; font-size: 16px;"><span style="color:#dc2626; font-weight:bold;">+1.70%</span></td>
-                <td class="hide-on-mobile" style="padding: 12px 18px; text-align: right;"><span style="color:#16a34a; font-weight:bold;">-1.87%</span></td>
+                <td class="hide-on-mobile" style="padding: 10px 15px; text-align: right; color: #475569; font-weight: 600;">415.32 億</td>
+                <td style="padding: 10px 15px; text-align: right; font-weight: 700; color: #1e293b;">17.35</td>
+                <td style="padding: 10px 15px; text-align: right;"><span style="color:#16a34a; font-weight:bold;">-3.56%</span></td>
+                <td class="highlight-col" style="padding: 10px 15px; text-align: right; font-size: 16px;"><span style="color:#dc2626; font-weight:bold;">+1.70%</span></td>
+                <td class="hide-on-mobile" style="padding: 10px 15px; text-align: right;"><span style="color:#16a34a; font-weight:bold;">-1.87%</span></td>
             </tr>
             
-            <tr class="macro-row" style="height: 56px; font-size: 15px; white-space: nowrap;">
-                <td class="freeze-col" style="padding: 12px 18px; text-align: left;">
+            <tr class="macro-row" style="height: 52px; font-size: 15px; white-space: nowrap;">
+                <td class="freeze-col" style="padding: 10px 15px; text-align: left;">
                     <div class="etf-info-cell">
                         <span class="etf-code-badge">00405A</span>
-                        <span style="font-weight: 700; color: #1e293b; font-size: 15px;">🥈 富邦台灣龍耀 <span style="font-size: 13px; color: #ef4444; margin-left: 8px;">(資料: 08/24)</span></span>
+                        <span style="font-weight: 700; color: #1e293b; font-size: 15px;">🥈 富邦台灣龍耀<span style="font-size: 12px; color: #ef4444; margin-left: 6px; background:#fee2e2; padding:2px 6px; border-radius:12px;">08/24</span></span>
                     </div>
                 </td>
-                <td class="hide-on-mobile" style="padding: 12px 18px; text-align: right; color: #475569; font-weight: 600;">283.12 億</td>
-                <td style="padding: 12px 18px; text-align: right; font-weight: 700; color: #1e293b;">8.21</td>
-                <td style="padding: 12px 18px; text-align: right;"><span style="color:#16a34a; font-weight:bold;">-6.81%</span></td>
-                <td class="highlight-col" style="padding: 12px 18px; text-align: right; font-size: 16px;"><span style="color:#dc2626; font-weight:bold;">+0.98%</span></td>
-                <td class="hide-on-mobile" style="padding: 12px 18px; text-align: right;"><span style="color:#16a34a; font-weight:bold;">-4.53%</span></td>
+                <td class="hide-on-mobile" style="padding: 10px 15px; text-align: right; color: #475569; font-weight: 600;">283.12 億</td>
+                <td style="padding: 10px 15px; text-align: right; font-weight: 700; color: #1e293b;">8.21</td>
+                <td style="padding: 10px 15px; text-align: right;"><span style="color:#16a34a; font-weight:bold;">-6.81%</span></td>
+                <td class="highlight-col" style="padding: 10px 15px; text-align: right; font-size: 16px;"><span style="color:#dc2626; font-weight:bold;">+0.98%</span></td>
+                <td class="hide-on-mobile" style="padding: 10px 15px; text-align: right;"><span style="color:#16a34a; font-weight:bold;">-4.53%</span></td>
             </tr>
             
-            <tr class="macro-row" style="height: 56px; font-size: 15px; white-space: nowrap;">
-                <td class="freeze-col" style="padding: 12px 18px; text-align: left;">
+            <tr class="macro-row" style="height: 52px; font-size: 15px; white-space: nowrap;">
+                <td class="freeze-col" style="padding: 10px 15px; text-align: left;">
                     <div class="etf-info-cell">
                         <span class="etf-code-badge">00991A</span>
-                        <span style="font-weight: 700; color: #1e293b; font-size: 15px;">🥉 復華未來50 </span>
+                        <span style="font-weight: 700; color: #1e293b; font-size: 15px;">🥉 復華未來50</span>
                     </div>
                 </td>
-                <td class="hide-on-mobile" style="padding: 12px 18px; text-align: right; color: #475569; font-weight: 600;">849.95 億</td>
-                <td style="padding: 12px 18px; text-align: right; font-weight: 700; color: #1e293b;">17.66</td>
-                <td style="padding: 12px 18px; text-align: right;"><span style="color:#16a34a; font-weight:bold;">-3.02%</span></td>
-                <td class="highlight-col" style="padding: 12px 18px; text-align: right; font-size: 16px;"><span style="color:#dc2626; font-weight:bold;">+0.28%</span></td>
-                <td class="hide-on-mobile" style="padding: 12px 18px; text-align: right;"><span style="color:#16a34a; font-weight:bold;">-7.39%</span></td>
+                <td class="hide-on-mobile" style="padding: 10px 15px; text-align: right; color: #475569; font-weight: 600;">849.95 億</td>
+                <td style="padding: 10px 15px; text-align: right; font-weight: 700; color: #1e293b;">17.66</td>
+                <td style="padding: 10px 15px; text-align: right;"><span style="color:#16a34a; font-weight:bold;">-3.02%</span></td>
+                <td class="highlight-col" style="padding: 10px 15px; text-align: right; font-size: 16px;"><span style="color:#dc2626; font-weight:bold;">+0.28%</span></td>
+                <td class="hide-on-mobile" style="padding: 10px 15px; text-align: right;"><span style="color:#16a34a; font-weight:bold;">-7.39%</span></td>
             </tr>
             
-            <tr class="macro-row" style="height: 56px; font-size: 15px; white-space: nowrap;">
-                <td class="freeze-col" style="padding: 12px 18px; text-align: left;">
+            <tr class="macro-row" style="height: 52px; font-size: 15px; white-space: nowrap;">
+                <td class="freeze-col" style="padding: 10px 15px; text-align: left;">
                     <div class="etf-info-cell">
                         <span class="etf-code-badge">00406A</span>
-                        <span style="font-weight: 700; color: #1e293b; font-size: 15px;"><span style='color:#94a3b8; font-size:14px; font-weight:normal; margin-right:4px;'>#4</span>中信台灣收益成長 </span>
+                        <span style="font-weight: 700; color: #1e293b; font-size: 15px;"><span style='color:#94a3b8; font-size:14px; font-weight:normal; margin-right:4px;'>#4</span>中信台灣收益成長</span>
                     </div>
                 </td>
-                <td class="hide-on-mobile" style="padding: 12px 18px; text-align: right; color: #475569; font-weight: 600;">260.73 億</td>
-                <td style="padding: 12px 18px; text-align: right; font-weight: 700; color: #1e293b;">9.43</td>
-                <td style="padding: 12px 18px; text-align: right;"><span style="color:#16a34a; font-weight:bold;">-2.38%</span></td>
-                <td class="highlight-col" style="padding: 12px 18px; text-align: right; font-size: 16px;"><span style="color:#dc2626; font-weight:bold;">+0.21%</span></td>
-                <td class="hide-on-mobile" style="padding: 12px 18px; text-align: right;"><span style="color:#16a34a; font-weight:bold;">-3.48%</span></td>
+                <td class="hide-on-mobile" style="padding: 10px 15px; text-align: right; color: #475569; font-weight: 600;">260.73 億</td>
+                <td style="padding: 10px 15px; text-align: right; font-weight: 700; color: #1e293b;">9.43</td>
+                <td style="padding: 10px 15px; text-align: right;"><span style="color:#16a34a; font-weight:bold;">-2.38%</span></td>
+                <td class="highlight-col" style="padding: 10px 15px; text-align: right; font-size: 16px;"><span style="color:#dc2626; font-weight:bold;">+0.21%</span></td>
+                <td class="hide-on-mobile" style="padding: 10px 15px; text-align: right;"><span style="color:#16a34a; font-weight:bold;">-3.48%</span></td>
             </tr>
             
-            <tr class="macro-row" style="height: 56px; font-size: 15px; white-space: nowrap;">
-                <td class="freeze-col" style="padding: 12px 18px; text-align: left;">
+            <tr class="macro-row" style="height: 52px; font-size: 15px; white-space: nowrap;">
+                <td class="freeze-col" style="padding: 10px 15px; text-align: left;">
                     <div class="etf-info-cell">
                         <span class="etf-code-badge">00981A</span>
-                        <span style="font-weight: 700; color: #1e293b; font-size: 15px;"><span style='color:#94a3b8; font-size:14px; font-weight:normal; margin-right:4px;'>#5</span>統一台股增長 <span style="font-size: 13px; color: #ef4444; margin-left: 8px;">(資料: 08/24)</span></span>
+                        <span style="font-weight: 700; color: #1e293b; font-size: 15px;"><span style='color:#94a3b8; font-size:14px; font-weight:normal; margin-right:4px;'>#5</span>統一台股增長<span style="font-size: 12px; color: #ef4444; margin-left: 6px; background:#fee2e2; padding:2px 6px; border-radius:12px;">08/24</span></span>
                     </div>
                 </td>
-                <td class="hide-on-mobile" style="padding: 12px 18px; text-align: right; color: #475569; font-weight: 600;">2788.05 億</td>
-                <td style="padding: 12px 18px; text-align: right; font-weight: 700; color: #1e293b;">28.44</td>
-                <td style="padding: 12px 18px; text-align: right;"><span style="color:#16a34a; font-weight:bold;">-6.66%</span></td>
-                <td class="highlight-col" style="padding: 12px 18px; text-align: right; font-size: 16px;"><span style="color:#16a34a; font-weight:bold;">-0.56%</span></td>
-                <td class="hide-on-mobile" style="padding: 12px 18px; text-align: right;"><span style="color:#16a34a; font-weight:bold;">-3.92%</span></td>
+                <td class="hide-on-mobile" style="padding: 10px 15px; text-align: right; color: #475569; font-weight: 600;">2788.05 億</td>
+                <td style="padding: 10px 15px; text-align: right; font-weight: 700; color: #1e293b;">28.44</td>
+                <td style="padding: 10px 15px; text-align: right;"><span style="color:#16a34a; font-weight:bold;">-6.66%</span></td>
+                <td class="highlight-col" style="padding: 10px 15px; text-align: right; font-size: 16px;"><span style="color:#16a34a; font-weight:bold;">-0.56%</span></td>
+                <td class="hide-on-mobile" style="padding: 10px 15px; text-align: right;"><span style="color:#16a34a; font-weight:bold;">-3.92%</span></td>
             </tr>
             
-            <tr class="macro-row" style="height: 56px; font-size: 15px; white-space: nowrap;">
-                <td class="freeze-col" style="padding: 12px 18px; text-align: left;">
+            <tr class="macro-row" style="height: 52px; font-size: 15px; white-space: nowrap;">
+                <td class="freeze-col" style="padding: 10px 15px; text-align: left;">
                     <div class="etf-info-cell">
                         <span class="etf-code-badge">00403A</span>
-                        <span style="font-weight: 700; color: #1e293b; font-size: 15px;">統一升級50 <span style="font-size: 13px; color: #ef4444; margin-left: 8px;">(資料: 08/24)</span></span>
+                        <span style="font-weight: 700; color: #1e293b; font-size: 15px;">統一升級50<span style="font-size: 12px; color: #ef4444; margin-left: 6px; background:#fee2e2; padding:2px 6px; border-radius:12px;">08/24</span></span>
                     </div>
                 </td>
-                <td class="hide-on-mobile" style="padding: 12px 18px; text-align: right; color: #475569; font-weight: 600;">1658.02 億</td>
-                <td style="padding: 12px 18px; text-align: right; font-weight: 700; color: #1e293b;">9.86</td>
-                <td style="padding: 12px 18px; text-align: right;"><span style="color:#16a34a; font-weight:bold;">-5.37%</span></td>
-                <td class="highlight-col" style="padding: 12px 18px; text-align: right; font-size: 16px;"><span style="color:#16a34a; font-weight:bold;">-0.60%</span></td>
-                <td class="hide-on-mobile" style="padding: 12px 18px; text-align: right;"><span style="color:#16a34a; font-weight:bold;">-4.92%</span></td>
+                <td class="hide-on-mobile" style="padding: 10px 15px; text-align: right; color: #475569; font-weight: 600;">1658.02 億</td>
+                <td style="padding: 10px 15px; text-align: right; font-weight: 700; color: #1e293b;">9.86</td>
+                <td style="padding: 10px 15px; text-align: right;"><span style="color:#16a34a; font-weight:bold;">-5.37%</span></td>
+                <td class="highlight-col" style="padding: 10px 15px; text-align: right; font-size: 16px;"><span style="color:#16a34a; font-weight:bold;">-0.60%</span></td>
+                <td class="hide-on-mobile" style="padding: 10px 15px; text-align: right;"><span style="color:#16a34a; font-weight:bold;">-4.92%</span></td>
             </tr>
             
-            <tr class="macro-row" style="height: 56px; font-size: 15px; white-space: nowrap;">
-                <td class="freeze-col" style="padding: 12px 18px; text-align: left;">
+            <tr class="macro-row" style="height: 52px; font-size: 15px; white-space: nowrap;">
+                <td class="freeze-col" style="padding: 10px 15px; text-align: left;">
                     <div class="etf-info-cell">
                         <span class="etf-code-badge">00988A</span>
-                        <span style="font-weight: 700; color: #1e293b; font-size: 15px;">統一全球創新 <span style="font-size: 13px; color: #ef4444; margin-left: 8px;">(資料: 08/24)</span></span>
+                        <span style="font-weight: 700; color: #1e293b; font-size: 15px;">統一全球創新<span style="font-size: 12px; color: #ef4444; margin-left: 6px; background:#fee2e2; padding:2px 6px; border-radius:12px;">08/24</span></span>
                     </div>
                 </td>
-                <td class="hide-on-mobile" style="padding: 12px 18px; text-align: right; color: #475569; font-weight: 600;">548.95 億</td>
-                <td style="padding: 12px 18px; text-align: right; font-weight: 700; color: #1e293b;">16.38</td>
-                <td style="padding: 12px 18px; text-align: right;"><span style="color:#16a34a; font-weight:bold;">-6.98%</span></td>
-                <td class="highlight-col" style="padding: 12px 18px; text-align: right; font-size: 16px;"><span style="color:#16a34a; font-weight:bold;">-1.62%</span></td>
-                <td class="hide-on-mobile" style="padding: 12px 18px; text-align: right;"><span style="color:#16a34a; font-weight:bold;">-20.49%</span></td>
+                <td class="hide-on-mobile" style="padding: 10px 15px; text-align: right; color: #475569; font-weight: 600;">548.95 億</td>
+                <td style="padding: 10px 15px; text-align: right; font-weight: 700; color: #1e293b;">16.38</td>
+                <td style="padding: 10px 15px; text-align: right;"><span style="color:#16a34a; font-weight:bold;">-6.98%</span></td>
+                <td class="highlight-col" style="padding: 10px 15px; text-align: right; font-size: 16px;"><span style="color:#16a34a; font-weight:bold;">-1.62%</span></td>
+                <td class="hide-on-mobile" style="padding: 10px 15px; text-align: right;"><span style="color:#16a34a; font-weight:bold;">-20.49%</span></td>
             </tr>
             
-            <tr class="macro-row" style="height: 56px; font-size: 15px; white-space: nowrap;">
-                <td class="freeze-col" style="padding: 12px 18px; text-align: left;">
+            <tr class="macro-row" style="height: 52px; font-size: 15px; white-space: nowrap;">
+                <td class="freeze-col" style="padding: 10px 15px; text-align: left;">
                     <div class="etf-info-cell">
                         <span class="etf-code-badge">00997A</span>
-                        <span style="font-weight: 700; color: #1e293b; font-size: 15px;">群益美國增長 </span>
+                        <span style="font-weight: 700; color: #1e293b; font-size: 15px;">群益美國增長</span>
                     </div>
                 </td>
-                <td class="hide-on-mobile" style="padding: 12px 18px; text-align: right; color: #475569; font-weight: 600;">132.60 億</td>
-                <td style="padding: 12px 18px; text-align: right; font-weight: 700; color: #1e293b;">11.22</td>
-                <td style="padding: 12px 18px; text-align: right;"><span style="color:#16a34a; font-weight:bold;">-6.34%</span></td>
-                <td class="highlight-col" style="padding: 12px 18px; text-align: right; font-size: 16px;"><span style="color:#16a34a; font-weight:bold;">-1.84%</span></td>
-                <td class="hide-on-mobile" style="padding: 12px 18px; text-align: right;"><span style="color:#16a34a; font-weight:bold;">-7.27%</span></td>
+                <td class="hide-on-mobile" style="padding: 10px 15px; text-align: right; color: #475569; font-weight: 600;">132.60 億</td>
+                <td style="padding: 10px 15px; text-align: right; font-weight: 700; color: #1e293b;">11.22</td>
+                <td style="padding: 10px 15px; text-align: right;"><span style="color:#16a34a; font-weight:bold;">-6.34%</span></td>
+                <td class="highlight-col" style="padding: 10px 15px; text-align: right; font-size: 16px;"><span style="color:#16a34a; font-weight:bold;">-1.84%</span></td>
+                <td class="hide-on-mobile" style="padding: 10px 15px; text-align: right;"><span style="color:#16a34a; font-weight:bold;">-7.27%</span></td>
             </tr>
             
-            <tr class="macro-row" style="height: 56px; font-size: 15px; white-space: nowrap;">
-                <td class="freeze-col" style="padding: 12px 18px; text-align: left;">
+            <tr class="macro-row" style="height: 52px; font-size: 15px; white-space: nowrap;">
+                <td class="freeze-col" style="padding: 10px 15px; text-align: left;">
                     <div class="etf-info-cell">
                         <span class="etf-code-badge">00402A</span>
-                        <span style="font-weight: 700; color: #1e293b; font-size: 15px;">安聯美國科技 <span style="font-size: 13px; color: #ef4444; margin-left: 8px;">(資料: 08/24)</span></span>
+                        <span style="font-weight: 700; color: #1e293b; font-size: 15px;">安聯美國科技<span style="font-size: 12px; color: #ef4444; margin-left: 6px; background:#fee2e2; padding:2px 6px; border-radius:12px;">08/24</span></span>
                     </div>
                 </td>
-                <td class="hide-on-mobile" style="padding: 12px 18px; text-align: right; color: #475569; font-weight: 600;">64.99 億</td>
-                <td style="padding: 12px 18px; text-align: right; font-weight: 700; color: #1e293b;">9.56</td>
-                <td style="padding: 12px 18px; text-align: right;"><span style="color:#16a34a; font-weight:bold;">-4.50%</span></td>
-                <td class="highlight-col" style="padding: 12px 18px; text-align: right; font-size: 16px;"><span style="color:#16a34a; font-weight:bold;">-3.63%</span></td>
-                <td class="hide-on-mobile" style="padding: 12px 18px; text-align: right;"><span style="color:#94a3b8;">-</span></td>
+                <td class="hide-on-mobile" style="padding: 10px 15px; text-align: right; color: #475569; font-weight: 600;">64.99 億</td>
+                <td style="padding: 10px 15px; text-align: right; font-weight: 700; color: #1e293b;">9.56</td>
+                <td style="padding: 10px 15px; text-align: right;"><span style="color:#16a34a; font-weight:bold;">-4.50%</span></td>
+                <td class="highlight-col" style="padding: 10px 15px; text-align: right; font-size: 16px;"><span style="color:#16a34a; font-weight:bold;">-3.63%</span></td>
+                <td class="hide-on-mobile" style="padding: 10px 15px; text-align: right;"><span style="color:#94a3b8;">-</span></td>
             </tr>
             </tbody>
                     </table>
@@ -248,7 +250,7 @@
         <div class="focus-grid">
             <div class="focus-card"><div class="focus-header bg-buy"><span>🤝 當日多檔 ETF 同步加碼股</span><span style="font-size: 13px; font-weight: normal;">(>=2 檔)</span></div><table style="width: 100%; border-collapse: collapse; text-align: left;"><thead><tr style="background:#f8fafc; height:38px; color:#64748b; font-size:13px;"><th style="padding:8px 12px;">代號</th><th style="padding:8px 12px;">股名</th><th style="padding:8px 12px;">參與 ETF</th><th style="padding:8px 12px; text-align:right;">合計買進</th></tr></thead><tbody><tr><td colspan="4" style="text-align: center; padding: 20px; color: #94a3b8;">- 當日無顯著標的 -</td></tr></tbody></table></div>
             <div class="focus-card"><div class="focus-header bg-sell"><span>⚠️ 當日多檔 ETF 同步減碼股</span><span style="font-size: 13px; font-weight: normal;">(>=2 檔)</span></div><table style="width: 100%; border-collapse: collapse; text-align: left;"><thead><tr style="background:#f8fafc; height:38px; color:#64748b; font-size:13px;"><th style="padding:8px 12px;">代號</th><th style="padding:8px 12px;">股名</th><th style="padding:8px 12px;">參與 ETF</th><th style="padding:8px 12px; text-align:right;">合計賣出</th></tr></thead><tbody><tr><td colspan="4" style="text-align: center; padding: 20px; color: #94a3b8;">- 當日無顯著標的 -</td></tr></tbody></table></div>
-            <div class="focus-card"><div class="focus-header bg-streak-buy"><span>🚀 連續加碼焦點股 (波段吸籌)</span><span style="font-size: 13px; font-weight: normal;">(連續 2+ 天買)</span></div><table style="width: 100%; border-collapse: collapse; text-align: left;"><thead><tr style="background:#f8fafc; height:38px; color:#64748b; font-size:13px;"><th style="padding:8px 12px;">代號</th><th style="padding:8px 12px;">股名</th><th style="padding:8px 12px; text-align:center;">連買天數</th><th style="padding:8px 12px; text-align:right;">波段累計股數</th></tr></thead><tbody><tr style="border-bottom: 1px solid #f1f5f9; height: 48px;"><td style="padding: 8px 12px; font-family: monospace; font-weight: bold; color: #475569;">2059</td><td style="padding: 8px 12px; font-weight: 700; color: #1e293b;">川湖科技</td><td style="padding: 8px 12px; text-align: center;"><span style="background: #fee2e2; color: #991b1b; padding: 2px 8px; border-radius: 12px; font-weight: bold; font-size: 13px;">連續 6 天</span></td><td style="padding: 8px 12px; text-align: right; font-weight: 900;" class="val-buy">96,000 股</td></tr><tr style="border-bottom: 1px solid #f1f5f9; height: 48px;"><td style="padding: 8px 12px; font-family: monospace; font-weight: bold; color: #475569;">2308</td><td style="padding: 8px 12px; font-weight: 700; color: #1e293b;">台達電子工業</td><td style="padding: 8px 12px; text-align: center;"><span style="background: #fee2e2; color: #991b1b; padding: 2px 8px; border-radius: 12px; font-weight: bold; font-size: 13px;">連續 2 天</span></td><td style="padding: 8px 12px; text-align: right; font-weight: 900;" class="val-buy">49,000 股</td></tr><tr style="border-bottom: 1px solid #f1f5f9; height: 48px;"><td style="padding: 8px 12px; font-family: monospace; font-weight: bold; color: #475569;">2330</td><td style="padding: 8px 12px; font-weight: 700; color: #1e293b;">台灣積體電路製造</td><td style="padding: 8px 12px; text-align: center;"><span style="background: #fee2e2; color: #991b1b; padding: 2px 8px; border-radius: 12px; font-weight: bold; font-size: 13px;">連續 2 天</span></td><td style="padding: 8px 12px; text-align: right; font-weight: 900;" class="val-buy">145,000 股</td></tr><tr style="border-bottom: 1px solid #f1f5f9; height: 48px;"><td style="padding: 8px 12px; font-family: monospace; font-weight: bold; color: #475569;">2454</td><td style="padding: 8px 12px; font-weight: 700; color: #1e293b;">聯發科技</td><td style="padding: 8px 12px; text-align: center;"><span style="background: #fee2e2; color: #991b1b; padding: 2px 8px; border-radius: 12px; font-weight: bold; font-size: 13px;">連續 2 天</span></td><td style="padding: 8px 12px; text-align: right; font-weight: 900;" class="val-buy">45,000 股</td></tr><tr style="border-bottom: 1px solid #f1f5f9; height: 48px;"><td style="padding: 8px 12px; font-family: monospace; font-weight: bold; color: #475569;">2383</td><td style="padding: 8px 12px; font-weight: 700; color: #1e293b;">台光電子材料</td><td style="padding: 8px 12px; text-align: center;"><span style="background: #fee2e2; color: #991b1b; padding: 2px 8px; border-radius: 12px; font-weight: bold; font-size: 13px;">連續 2 天</span></td><td style="padding: 8px 12px; text-align: right; font-weight: 900;" class="val-buy">41,000 股</td></tr><tr style="border-bottom: 1px solid #f1f5f9; height: 48px;"><td style="padding: 8px 12px; font-family: monospace; font-weight: bold; color: #475569;">6223</td><td style="padding: 8px 12px; font-weight: 700; color: #1e293b;">旺矽科技</td><td style="padding: 8px 12px; text-align: center;"><span style="background: #fee2e2; color: #991b1b; padding: 2px 8px; border-radius: 12px; font-weight: bold; font-size: 13px;">連續 2 天</span></td><td style="padding: 8px 12px; text-align: right; font-weight: 900;" class="val-buy">36,000 股</td></tr><tr style="border-bottom: 1px solid #f1f5f9; height: 48px;"><td style="padding: 8px 12px; font-family: monospace; font-weight: bold; color: #475569;">8996</td><td style="padding: 8px 12px; font-weight: 700; color: #1e293b;">高力熱處理工業</td><td style="padding: 8px 12px; text-align: center;"><span style="background: #fee2e2; color: #991b1b; padding: 2px 8px; border-radius: 12px; font-weight: bold; font-size: 13px;">連續 2 天</span></td><td style="padding: 8px 12px; text-align: right; font-weight: 900;" class="val-buy">252,000 股</td></tr><tr style="border-bottom: 1px solid #f1f5f9; height: 48px;"><td style="padding: 8px 12px; font-family: monospace; font-weight: bold; color: #475569;">7769</td><td style="padding: 8px 12px; font-weight: 700; color: #1e293b;">鴻勁</td><td style="padding: 8px 12px; text-align: center;"><span style="background: #fee2e2; color: #991b1b; padding: 2px 8px; border-radius: 12px; font-weight: bold; font-size: 13px;">連續 2 天</span></td><td style="padding: 8px 12px; text-align: right; font-weight: 900;" class="val-buy">15,000 股</td></tr></tbody></table></div>
+            <div class="focus-card"><div class="focus-header bg-streak-buy"><span>🚀 連續加碼焦點股 (波段吸籌)</span><span style="font-size: 13px; font-weight: normal;">(連續 2+ 天買)</span></div><table style="width: 100%; border-collapse: collapse; text-align: left;"><thead><tr style="background:#f8fafc; height:38px; color:#64748b; font-size:13px;"><th style="padding:8px 12px;">代號</th><th style="padding:8px 12px;">股名</th><th style="padding:8px 12px; text-align:center;">連買天數</th><th style="padding:8px 12px; text-align:right;">波段累計股數</th></tr></thead><tbody><tr style="border-bottom: 1px solid #f1f5f9; height: 48px;"><td style="padding: 8px 12px; font-family: monospace; font-weight: bold; color: #475569;">2059</td><td style="padding: 8px 12px; font-weight: 700; color: #1e293b;">川湖科技</td><td style="padding: 8px 12px; text-align: center;"><span style="background: #fee2e2; color: #991b1b; padding: 2px 8px; border-radius: 12px; font-weight: bold; font-size: 13px;">連續 6 天</span></td><td style="padding: 8px 12px; text-align: right; font-weight: 900;" class="val-buy">96,000 股</td></tr><tr style="border-bottom: 1px solid #f1f5f9; height: 48px;"><td style="padding: 8px 12px; font-family: monospace; font-weight: bold; color: #475569;">2383</td><td style="padding: 8px 12px; font-weight: 700; color: #1e293b;">台光電子材料</td><td style="padding: 8px 12px; text-align: center;"><span style="background: #fee2e2; color: #991b1b; padding: 2px 8px; border-radius: 12px; font-weight: bold; font-size: 13px;">連續 2 天</span></td><td style="padding: 8px 12px; text-align: right; font-weight: 900;" class="val-buy">41,000 股</td></tr><tr style="border-bottom: 1px solid #f1f5f9; height: 48px;"><td style="padding: 8px 12px; font-family: monospace; font-weight: bold; color: #475569;">6223</td><td style="padding: 8px 12px; font-weight: 700; color: #1e293b;">旺矽科技</td><td style="padding: 8px 12px; text-align: center;"><span style="background: #fee2e2; color: #991b1b; padding: 2px 8px; border-radius: 12px; font-weight: bold; font-size: 13px;">連續 2 天</span></td><td style="padding: 8px 12px; text-align: right; font-weight: 900;" class="val-buy">36,000 股</td></tr><tr style="border-bottom: 1px solid #f1f5f9; height: 48px;"><td style="padding: 8px 12px; font-family: monospace; font-weight: bold; color: #475569;">2454</td><td style="padding: 8px 12px; font-weight: 700; color: #1e293b;">聯發科技</td><td style="padding: 8px 12px; text-align: center;"><span style="background: #fee2e2; color: #991b1b; padding: 2px 8px; border-radius: 12px; font-weight: bold; font-size: 13px;">連續 2 天</span></td><td style="padding: 8px 12px; text-align: right; font-weight: 900;" class="val-buy">45,000 股</td></tr><tr style="border-bottom: 1px solid #f1f5f9; height: 48px;"><td style="padding: 8px 12px; font-family: monospace; font-weight: bold; color: #475569;">2330</td><td style="padding: 8px 12px; font-weight: 700; color: #1e293b;">台灣積體電路製造</td><td style="padding: 8px 12px; text-align: center;"><span style="background: #fee2e2; color: #991b1b; padding: 2px 8px; border-radius: 12px; font-weight: bold; font-size: 13px;">連續 2 天</span></td><td style="padding: 8px 12px; text-align: right; font-weight: 900;" class="val-buy">145,000 股</td></tr><tr style="border-bottom: 1px solid #f1f5f9; height: 48px;"><td style="padding: 8px 12px; font-family: monospace; font-weight: bold; color: #475569;">2308</td><td style="padding: 8px 12px; font-weight: 700; color: #1e293b;">台達電子工業</td><td style="padding: 8px 12px; text-align: center;"><span style="background: #fee2e2; color: #991b1b; padding: 2px 8px; border-radius: 12px; font-weight: bold; font-size: 13px;">連續 2 天</span></td><td style="padding: 8px 12px; text-align: right; font-weight: 900;" class="val-buy">49,000 股</td></tr><tr style="border-bottom: 1px solid #f1f5f9; height: 48px;"><td style="padding: 8px 12px; font-family: monospace; font-weight: bold; color: #475569;">8996</td><td style="padding: 8px 12px; font-weight: 700; color: #1e293b;">高力熱處理工業</td><td style="padding: 8px 12px; text-align: center;"><span style="background: #fee2e2; color: #991b1b; padding: 2px 8px; border-radius: 12px; font-weight: bold; font-size: 13px;">連續 2 天</span></td><td style="padding: 8px 12px; text-align: right; font-weight: 900;" class="val-buy">252,000 股</td></tr><tr style="border-bottom: 1px solid #f1f5f9; height: 48px;"><td style="padding: 8px 12px; font-family: monospace; font-weight: bold; color: #475569;">7769</td><td style="padding: 8px 12px; font-weight: 700; color: #1e293b;">鴻勁</td><td style="padding: 8px 12px; text-align: center;"><span style="background: #fee2e2; color: #991b1b; padding: 2px 8px; border-radius: 12px; font-weight: bold; font-size: 13px;">連續 2 天</span></td><td style="padding: 8px 12px; text-align: right; font-weight: 900;" class="val-buy">15,000 股</td></tr></tbody></table></div>
             <div class="focus-card"><div class="focus-header bg-streak-sell"><span>📉 連續減碼焦點股 (波段調節)</span><span style="font-size: 13px; font-weight: normal;">(連續 2+ 天賣)</span></div><table style="width: 100%; border-collapse: collapse; text-align: left;"><thead><tr style="background:#f8fafc; height:38px; color:#64748b; font-size:13px;"><th style="padding:8px 12px;">代號</th><th style="padding:8px 12px;">股名</th><th style="padding:8px 12px; text-align:center;">連賣天數</th><th style="padding:8px 12px; text-align:right;">波段調節股數</th></tr></thead><tbody><tr><td colspan="4" style="text-align: center; padding: 20px; color: #94a3b8;">- 當日無顯著標的 -</td></tr></tbody></table></div>
         </div>
         
@@ -316,7 +318,7 @@
                 <details>
                     <summary>
                         <div class="etf-title">
-                            🥈 <span class="etf-code">00405A</span> 富邦台灣龍耀 <span style="font-size: 13px; color: #ef4444; margin-left: 8px;">(資料: 08/24)</span> <span style="font-size: 14px; font-weight: 600; color: #0f172a; margin-left: 12px; background: #e2e8f0; padding: 4px 10px; border-radius: 20px;">規模: 283.12 億</span> <span style="font-size: 14px; font-weight: 600; color: #166534; margin-left: 8px; background: #dcfce7; padding: 4px 10px; border-radius: 20px;">總持股 94.48%</span>
+                            🥈 <span class="etf-code">00405A</span> 富邦台灣龍耀 <span style="font-size: 12px; color: #ef4444; margin-left: 6px; background:#fee2e2; padding:2px 6px; border-radius:12px;">08/24</span> <span style="font-size: 14px; font-weight: 600; color: #0f172a; margin-left: 12px; background: #e2e8f0; padding: 4px 10px; border-radius: 20px;">規模: 283.12 億</span> <span style="font-size: 14px; font-weight: 600; color: #166534; margin-left: 8px; background: #dcfce7; padding: 4px 10px; border-radius: 20px;">總持股 94.48%</span>
                             <span class="toggle-hint">點擊展開/收折 ▾</span>
                         </div>
                     </summary>
@@ -487,7 +489,7 @@
                 <details>
                     <summary>
                         <div class="etf-title">
-                            <span class="etf-code">00981A</span> 統一台股增長 <span style="font-size: 13px; color: #ef4444; margin-left: 8px;">(資料: 08/24)</span> <span style="font-size: 14px; font-weight: 600; color: #0f172a; margin-left: 12px; background: #e2e8f0; padding: 4px 10px; border-radius: 20px;">規模: 2788.05 億</span> <span style="font-size: 14px; font-weight: 600; color: #166534; margin-left: 8px; background: #dcfce7; padding: 4px 10px; border-radius: 20px;">總持股 96.90%</span>
+                            <span class="etf-code">00981A</span> 統一台股增長 <span style="font-size: 12px; color: #ef4444; margin-left: 6px; background:#fee2e2; padding:2px 6px; border-radius:12px;">08/24</span> <span style="font-size: 14px; font-weight: 600; color: #0f172a; margin-left: 12px; background: #e2e8f0; padding: 4px 10px; border-radius: 20px;">規模: 2788.05 億</span> <span style="font-size: 14px; font-weight: 600; color: #166534; margin-left: 8px; background: #dcfce7; padding: 4px 10px; border-radius: 20px;">總持股 96.90%</span>
                             <span class="toggle-hint">點擊展開/收折 ▾</span>
                         </div>
                     </summary>
@@ -544,7 +546,7 @@
                 <details>
                     <summary>
                         <div class="etf-title">
-                            <span class="etf-code">00403A</span> 統一升級50 <span style="font-size: 13px; color: #ef4444; margin-left: 8px;">(資料: 08/24)</span> <span style="font-size: 14px; font-weight: 600; color: #0f172a; margin-left: 12px; background: #e2e8f0; padding: 4px 10px; border-radius: 20px;">規模: 1658.02 億</span> <span style="font-size: 14px; font-weight: 600; color: #166534; margin-left: 8px; background: #dcfce7; padding: 4px 10px; border-radius: 20px;">總持股 89.65%</span>
+                            <span class="etf-code">00403A</span> 統一升級50 <span style="font-size: 12px; color: #ef4444; margin-left: 6px; background:#fee2e2; padding:2px 6px; border-radius:12px;">08/24</span> <span style="font-size: 14px; font-weight: 600; color: #0f172a; margin-left: 12px; background: #e2e8f0; padding: 4px 10px; border-radius: 20px;">規模: 1658.02 億</span> <span style="font-size: 14px; font-weight: 600; color: #166534; margin-left: 8px; background: #dcfce7; padding: 4px 10px; border-radius: 20px;">總持股 89.65%</span>
                             <span class="toggle-hint">點擊展開/收折 ▾</span>
                         </div>
                     </summary>
@@ -601,7 +603,7 @@
                 <details>
                     <summary>
                         <div class="etf-title">
-                            <span class="etf-code">00988A</span> 統一全球創新 <span style="font-size: 13px; color: #ef4444; margin-left: 8px;">(資料: 08/24)</span> <span style="font-size: 14px; font-weight: 600; color: #0f172a; margin-left: 12px; background: #e2e8f0; padding: 4px 10px; border-radius: 20px;">規模: 548.95 億</span> <span style="font-size: 14px; font-weight: 600; color: #166534; margin-left: 8px; background: #dcfce7; padding: 4px 10px; border-radius: 20px;">總持股 96.59%</span>
+                            <span class="etf-code">00988A</span> 統一全球創新 <span style="font-size: 12px; color: #ef4444; margin-left: 6px; background:#fee2e2; padding:2px 6px; border-radius:12px;">08/24</span> <span style="font-size: 14px; font-weight: 600; color: #0f172a; margin-left: 12px; background: #e2e8f0; padding: 4px 10px; border-radius: 20px;">規模: 548.95 億</span> <span style="font-size: 14px; font-weight: 600; color: #166534; margin-left: 8px; background: #dcfce7; padding: 4px 10px; border-radius: 20px;">總持股 96.59%</span>
                             <span class="toggle-hint">點擊展開/收折 ▾</span>
                         </div>
                     </summary>
@@ -715,7 +717,7 @@
                 <details>
                     <summary>
                         <div class="etf-title">
-                            <span class="etf-code">00402A</span> 安聯美國科技 <span style="font-size: 13px; color: #ef4444; margin-left: 8px;">(資料: 08/24)</span> <span style="font-size: 14px; font-weight: 600; color: #0f172a; margin-left: 12px; background: #e2e8f0; padding: 4px 10px; border-radius: 20px;">規模: 64.99 億</span> <span style="font-size: 14px; font-weight: 600; color: #166534; margin-left: 8px; background: #dcfce7; padding: 4px 10px; border-radius: 20px;">總持股 97.83%</span>
+                            <span class="etf-code">00402A</span> 安聯美國科技 <span style="font-size: 12px; color: #ef4444; margin-left: 6px; background:#fee2e2; padding:2px 6px; border-radius:12px;">08/24</span> <span style="font-size: 14px; font-weight: 600; color: #0f172a; margin-left: 12px; background: #e2e8f0; padding: 4px 10px; border-radius: 20px;">規模: 64.99 億</span> <span style="font-size: 14px; font-weight: 600; color: #166534; margin-left: 8px; background: #dcfce7; padding: 4px 10px; border-radius: 20px;">總持股 97.83%</span>
                             <span class="toggle-hint">點擊展開/收折 ▾</span>
                         </div>
                     </summary>

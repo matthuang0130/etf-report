@@ -90,20 +90,22 @@ BASE_HTML = """
         details.chart-details>summary{list-style:none;cursor:pointer;background:#f0f9ff;border:1px dashed #7dd3fc;color:#0284c7;padding:10px 15px;border-radius:8px;font-size:15px;font-weight:bold;} 
         details.chart-details>summary::-webkit-details-marker{display:none;}
         
-        /* 🔥 新增：大盤看板 UI 進化與手機版響應式設定 */
+        /* 🔥 修正：大盤看板 UI 緊湊化與斑馬紋設計 */
         .macro-dashboard table { border-collapse: collapse; width: 100%; min-width: 100%; }
         .macro-dashboard th, .macro-dashboard td { border-bottom: 1px solid #e2e8f0; }
-        .macro-row { transition: background-color 0.2s ease; }
-        .macro-row:hover { background-color: #f8fafc; }
-        .macro-row:hover .freeze-col { background-color: #f8fafc; }
+        .macro-row { transition: background-color 0.2s ease; background-color: #fff; }
+        .macro-row:nth-child(even) { background-color: #f8fafc; } /* 斑馬紋底色 */
+        .macro-row:nth-child(even) .freeze-col { background-color: #f8fafc; } /* 斑馬紋的凍結欄底色 */
+        .macro-row:hover, .macro-row:hover .freeze-col { background-color: #f1f5f9; } /* 滑鼠移過的顏色 */
+        
         .freeze-col { position: sticky; left: 0; z-index: 2; border-right: 1px solid #e2e8f0; background-color: #fff; transition: background-color 0.2s ease; }
         .macro-dashboard thead th { position: sticky; top: 0; z-index: 1; background-color: #f1f5f9; border-bottom: 2px solid #cbd5e1; }
         .macro-dashboard thead th.freeze-col { z-index: 3; }
         .highlight-col { background-color: #f8fafc; }
+        .macro-row:nth-child(even) .highlight-col { background-color: #f1f5f9; }
         
-        /* 🔥 電腦版並排，手機版折疊的標籤設計 */
         .etf-info-cell { display: flex; align-items: center; gap: 10px; }
-        .etf-code-badge { background: #f1f5f9; color: #475569; padding: 3px 8px; border-radius: 6px; font-family: monospace; font-size: 13px; font-weight: bold; border: 1px solid #e2e8f0; }
+        .etf-code-badge { background: #e2e8f0; color: #475569; padding: 3px 8px; border-radius: 6px; font-family: monospace; font-size: 13px; font-weight: bold; border: 1px solid #cbd5e1; }
         
         @media (max-width: 768px) { 
             .hide-on-mobile { display: none !important; } 
@@ -311,7 +313,7 @@ def _smart_read_and_clean_raw(filepaths):
     return None, fund_size, nav, st_wt_raw, ca_wt_raw
 
 def generate():
-    print(f"▶ 啟動 ETF 光速報表引擎 (排行榜 UI 細節優化版)...")
+    print(f"▶ 啟動 ETF 光速報表引擎 (緊湊版大盤與斑馬紋優化)...")
     os.makedirs('dist', exist_ok=True)
     all_files = [f for f in glob.glob(os.path.join('data', "*")) if not os.path.basename(f).startswith('.')]
     if not all_files:
@@ -434,7 +436,7 @@ def generate():
             else: 
                 df_yest = None
 
-            date_tag = f'<span style="font-size: 13px; color: #ef4444; margin-left: 8px;">(資料: {actual_date[4:6]}/{actual_date[6:8]})</span>' if actual_date != target_date else ""
+            date_tag = f'<span style="font-size: 12px; color: #ef4444; margin-left: 6px; background:#fee2e2; padding:2px 6px; border-radius:12px;">{actual_date[4:6]}/{actual_date[6:8]}</span>' if actual_date != target_date else ""
             size_badge = f'<span style="font-size: 14px; font-weight: 600; color: #0f172a; margin-left: 12px; background: #e2e8f0; padding: 4px 10px; border-radius: 20px;">規模: {size_today}</span>' if size_today else ""
             ratio_badge = f'<span style="font-size: 14px; font-weight: 600; color: #166534; margin-left: 8px; background: #dcfce7; padding: 4px 10px; border-radius: 20px;">總持股 {st_wt:.2f}%</span>' if st_wt > 0 else ""
 
@@ -497,20 +499,20 @@ def generate():
             
             nav_disp = f"{data['nav_today']:.2f}" if data['nav_today'] else "-"
             
-            # 🔥 移除操作動態，調整儲存格 padding，美化 ETF 代號標籤
+            # 🔥 調整了欄位寬度，讓內容更凝聚
             macro_rows_html += f'''
-            <tr class="macro-row" style="height: 56px; font-size: 15px; white-space: nowrap;">
-                <td class="freeze-col" style="padding: 12px 18px; text-align: left;">
+            <tr class="macro-row" style="height: 52px; font-size: 15px; white-space: nowrap;">
+                <td class="freeze-col" style="padding: 10px 15px; text-align: left;">
                     <div class="etf-info-cell">
                         <span class="etf-code-badge">{data['etf_code']}</span>
-                        <span style="font-weight: 700; color: #1e293b; font-size: 15px;">{medal}{data['etf_name']} {data['date_tag']}</span>
+                        <span style="font-weight: 700; color: #1e293b; font-size: 15px;">{medal}{data['etf_name']}{data['date_tag']}</span>
                     </div>
                 </td>
-                <td class="hide-on-mobile" style="padding: 12px 18px; text-align: right; color: #475569; font-weight: 600;">{data['size_today'] or '-'}</td>
-                <td style="padding: 12px 18px; text-align: right; font-weight: 700; color: #1e293b;">{nav_disp}</td>
-                <td style="padding: 12px 18px; text-align: right;">{format_ret(data['ret_5'])}</td>
-                <td class="highlight-col" style="padding: 12px 18px; text-align: right; font-size: 16px;">{format_ret(data['ret_10'])}</td>
-                <td class="hide-on-mobile" style="padding: 12px 18px; text-align: right;">{format_ret(data['ret_30'])}</td>
+                <td class="hide-on-mobile" style="padding: 10px 15px; text-align: right; color: #475569; font-weight: 600;">{data['size_today'] or '-'}</td>
+                <td style="padding: 10px 15px; text-align: right; font-weight: 700; color: #1e293b;">{nav_disp}</td>
+                <td style="padding: 10px 15px; text-align: right;">{format_ret(data['ret_5'])}</td>
+                <td class="highlight-col" style="padding: 10px 15px; text-align: right; font-size: 16px;">{format_ret(data['ret_10'])}</td>
+                <td class="hide-on-mobile" style="padding: 10px 15px; text-align: right;">{format_ret(data['ret_30'])}</td>
             </tr>
             '''
 
@@ -614,20 +616,20 @@ def generate():
 
         macro_dashboard_html = ""
         if macro_rows_html:
-            # 🔥 移除了操盤動態表頭，調整欄位配比
+            # 🔥 關鍵修改：將 max-width 設為 850px 並居中，徹底消除左右空洞感
             macro_dashboard_html = f'''
-            <div class="macro-dashboard" style="background: #ffffff; border: 1px solid #cbd5e1; border-radius: 12px; padding: 15px; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05); margin-bottom: 25px;">
+            <div class="macro-dashboard" style="background: #ffffff; border: 1px solid #cbd5e1; border-radius: 12px; padding: 15px; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05); margin-bottom: 25px; max-width: 850px; margin-left: auto; margin-right: auto;">
                 <h2 style="margin-top: 0; color: #0f172a; font-size: 18px; margin-bottom: 15px; text-align: center;">🏆 ETF 近 10 日強弱勢自動排行</h2>
                 <div style="overflow-x: auto; border-radius: 8px; border: 1px solid #e2e8f0;">
                     <table>
                         <thead>
                             <tr style="height: 48px; color: #334155; font-size: 14px; font-weight: bold; white-space: nowrap;">
-                                <th class="freeze-col" style="padding: 12px 18px; width: 180px; text-align: left;">ETF 標的</th>
-                                <th class="hide-on-mobile" style="padding: 12px 18px; width: 100px; text-align: right;">規模</th>
-                                <th style="padding: 12px 18px; width: 90px; text-align: right;">淨值</th>
-                                <th style="padding: 12px 18px; width: 90px; text-align: right;">近 5 日</th>
-                                <th class="highlight-col" style="padding: 12px 18px; width: 100px; text-align: right; color: #1d4ed8; border-radius: 6px 6px 0 0;">🎯 10 日排名</th>
-                                <th class="hide-on-mobile" style="padding: 12px 18px; width: 90px; text-align: right;">近 30 日</th>
+                                <th class="freeze-col" style="padding: 12px 15px; width: 200px; text-align: left;">ETF 標的</th>
+                                <th class="hide-on-mobile" style="padding: 12px 15px; width: 100px; text-align: right;">規模</th>
+                                <th style="padding: 12px 15px; width: 90px; text-align: right;">淨值</th>
+                                <th style="padding: 12px 15px; width: 90px; text-align: right;">近 5 日</th>
+                                <th class="highlight-col" style="padding: 12px 15px; width: 110px; text-align: right; color: #1d4ed8; border-radius: 6px 6px 0 0;">🎯 10 日排名</th>
+                                <th class="hide-on-mobile" style="padding: 12px 15px; width: 90px; text-align: right;">近 30 日</th>
                             </tr>
                         </thead>
                         <tbody>{macro_rows_html}</tbody>
