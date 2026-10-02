@@ -39,8 +39,8 @@
         .etf-section details[open] > summary { border-bottom: 2px solid #e2e8f0; }
         .etf-details-content { padding: 20px; background: #fafafa; }
         
-        .etf-title { font-size: 20px; font-weight: bold; color: #2c3e50; display: flex; align-items: center; flex-wrap: wrap; gap: 6px; width: 100%; margin: 0; }
-        .etf-title span { color: #e74c3c; margin-right: 4px; }
+        .etf-title { font-size: 18px; font-weight: bold; color: #2c3e50; display: flex; align-items: center; flex-wrap: wrap; gap: 6px; width: 100%; margin: 0; }
+        .etf-title span.etf-code { color: #e74c3c; margin-right: 4px; }
         .toggle-hint { margin-left: auto; font-size: 13px; color: #64748b; font-weight: normal; border: 1px solid #cbd5e1; padding: 4px 10px; border-radius: 20px; background: #fff; }
         
         .tables-grid { display: flex; gap: 20px; }
@@ -55,6 +55,29 @@
         .more-dates-dropdown{position:absolute;top:100%;left:0;margin-top:8px;background:#fff;border:1px solid #e2e8f0;border-radius:12px;box-shadow:0 10px 25px rgba(0,0,0,0.1);padding:16px;display:grid;grid-template-columns:repeat(4,1fr);gap:10px;z-index:100;min-width:320px;}
         details.chart-details>summary{list-style:none;cursor:pointer;background:#f0f9ff;border:1px dashed #7dd3fc;color:#0284c7;padding:10px 15px;border-radius:8px;font-size:15px;font-weight:bold;} 
         details.chart-details>summary::-webkit-details-marker{display:none;}
+        
+        /* 🔥 新增：大盤看板 UI 進化與手機版響應式設定 */
+        .macro-dashboard table { border-collapse: collapse; width: 100%; min-width: 100%; }
+        .macro-dashboard th, .macro-dashboard td { border-bottom: 1px solid #e2e8f0; }
+        .macro-row { transition: background-color 0.2s ease; }
+        .macro-row:hover { background-color: #f8fafc; }
+        .macro-row:hover .freeze-col { background-color: #f8fafc; }
+        .freeze-col { position: sticky; left: 0; z-index: 2; border-right: 1px solid #e2e8f0; background-color: #fff; transition: background-color 0.2s ease; }
+        .macro-dashboard thead th { position: sticky; top: 0; z-index: 1; background-color: #f1f5f9; border-bottom: 2px solid #cbd5e1; }
+        .macro-dashboard thead th.freeze-col { z-index: 3; }
+        .highlight-col { background-color: #f8fafc; }
+        
+        /* 🔥 電腦版並排，手機版折疊的標籤設計 */
+        .etf-info-cell { display: flex; align-items: center; gap: 10px; }
+        .etf-code-badge { background: #f1f5f9; color: #475569; padding: 3px 8px; border-radius: 6px; font-family: monospace; font-size: 13px; font-weight: bold; border: 1px solid #e2e8f0; }
+        
+        @media (max-width: 768px) { 
+            .hide-on-mobile { display: none !important; } 
+            .macro-dashboard table { min-width: 500px; }
+            .freeze-col { box-shadow: 2px 0 5px -2px rgba(0,0,0,0.15); border-right: none; }
+            .etf-info-cell { flex-direction: column; align-items: flex-start; gap: 4px; }
+            .etf-code-badge { font-size: 12px; padding: 2px 6px; }
+        }
     </style>
 </head>
 <body>
@@ -63,10 +86,10 @@
             <h1>ETF 成分股變動與焦點籌碼追蹤</h1>
             <div class="date-badge">看板更新日期：2026/05/26</div>
         </div>
-        <div class="date-menu"><a href="20261001.html" class="menu-btn ">10/01</a><a href="20260930.html" class="menu-btn ">09/30</a><a href="20260929.html" class="menu-btn ">09/29</a><a href="20260924.html" class="menu-btn ">09/24</a><a href="20260923.html" class="menu-btn ">09/23</a><details style="position:relative; display:inline-block;"><summary class="menu-btn">歷史紀錄 ▾</summary><div class="more-dates-dropdown"><a href="20260922.html" class="menu-btn ">09/22</a><a href="20260921.html" class="menu-btn ">09/21</a><a href="20260918.html" class="menu-btn ">09/18</a><a href="20260917.html" class="menu-btn ">09/17</a><a href="20260916.html" class="menu-btn ">09/16</a><a href="20260915.html" class="menu-btn ">09/15</a><a href="20260914.html" class="menu-btn ">09/14</a><a href="20260911.html" class="menu-btn ">09/11</a><a href="20260910.html" class="menu-btn ">09/10</a><a href="20260909.html" class="menu-btn ">09/09</a><a href="20260908.html" class="menu-btn ">09/08</a><a href="20260907.html" class="menu-btn ">09/07</a><a href="20260904.html" class="menu-btn ">09/04</a><a href="20260903.html" class="menu-btn ">09/03</a><a href="20260902.html" class="menu-btn ">09/02</a><a href="20260901.html" class="menu-btn ">09/01</a><a href="20260831.html" class="menu-btn ">08/31</a><a href="20260828.html" class="menu-btn ">08/28</a><a href="20260827.html" class="menu-btn ">08/27</a><a href="20260826.html" class="menu-btn ">08/26</a><a href="20260825.html" class="menu-btn ">08/25</a><a href="20260824.html" class="menu-btn ">08/24</a><a href="20260821.html" class="menu-btn ">08/21</a><a href="20260820.html" class="menu-btn ">08/20</a><a href="20260819.html" class="menu-btn ">08/19</a><a href="20260818.html" class="menu-btn ">08/18</a><a href="20260817.html" class="menu-btn ">08/17</a><a href="20260814.html" class="menu-btn ">08/14</a><a href="20260813.html" class="menu-btn ">08/13</a><a href="20260812.html" class="menu-btn ">08/12</a><a href="20260811.html" class="menu-btn ">08/11</a><a href="20260810.html" class="menu-btn ">08/10</a><a href="20260807.html" class="menu-btn ">08/07</a><a href="20260806.html" class="menu-btn ">08/06</a><a href="20260805.html" class="menu-btn ">08/05</a><a href="20260804.html" class="menu-btn ">08/04</a><a href="20260803.html" class="menu-btn ">08/03</a><a href="20260731.html" class="menu-btn ">07/31</a><a href="20260730.html" class="menu-btn ">07/30</a><a href="20260729.html" class="menu-btn ">07/29</a><a href="20260728.html" class="menu-btn ">07/28</a><a href="20260727.html" class="menu-btn ">07/27</a><a href="20260724.html" class="menu-btn ">07/24</a><a href="20260723.html" class="menu-btn ">07/23</a><a href="20260722.html" class="menu-btn ">07/22</a><a href="20260721.html" class="menu-btn ">07/21</a><a href="20260720.html" class="menu-btn ">07/20</a><a href="20260714.html" class="menu-btn ">07/14</a><a href="20260713.html" class="menu-btn ">07/13</a><a href="20260709.html" class="menu-btn ">07/09</a><a href="20260708.html" class="menu-btn ">07/08</a><a href="20260707.html" class="menu-btn ">07/07</a><a href="20260706.html" class="menu-btn ">07/06</a><a href="20260703.html" class="menu-btn ">07/03</a><a href="20260702.html" class="menu-btn ">07/02</a><a href="20260701.html" class="menu-btn ">07/01</a><a href="20260630.html" class="menu-btn ">06/30</a><a href="20260629.html" class="menu-btn ">06/29</a><a href="20260626.html" class="menu-btn ">06/26</a><a href="20260625.html" class="menu-btn ">06/25</a><a href="20260624.html" class="menu-btn ">06/24</a><a href="20260623.html" class="menu-btn ">06/23</a><a href="20260622.html" class="menu-btn ">06/22</a><a href="20260618.html" class="menu-btn ">06/18</a><a href="20260617.html" class="menu-btn ">06/17</a><a href="20260616.html" class="menu-btn ">06/16</a><a href="20260615.html" class="menu-btn ">06/15</a><a href="20260612.html" class="menu-btn ">06/12</a><a href="20260611.html" class="menu-btn ">06/11</a><a href="20260610.html" class="menu-btn ">06/10</a><a href="20260609.html" class="menu-btn ">06/09</a><a href="20260608.html" class="menu-btn ">06/08</a><a href="20260605.html" class="menu-btn ">06/05</a><a href="20260604.html" class="menu-btn ">06/04</a><a href="20260603.html" class="menu-btn ">06/03</a><a href="20260602.html" class="menu-btn ">06/02</a><a href="20260601.html" class="menu-btn ">06/01</a><a href="20260529.html" class="menu-btn ">05/29</a><a href="20260528.html" class="menu-btn ">05/28</a><a href="20260527.html" class="menu-btn ">05/27</a><a href="20260526.html" class="menu-btn active">05/26</a></div></details></div>
+        <div class="date-menu"><a href="20261002.html" class="menu-btn ">10/02</a><a href="20261001.html" class="menu-btn ">10/01</a><a href="20260930.html" class="menu-btn ">09/30</a><a href="20260929.html" class="menu-btn ">09/29</a><a href="20260924.html" class="menu-btn ">09/24</a><details style="position:relative; display:inline-block;"><summary class="menu-btn">歷史紀錄 ▾</summary><div class="more-dates-dropdown"><a href="20260923.html" class="menu-btn ">09/23</a><a href="20260922.html" class="menu-btn ">09/22</a><a href="20260921.html" class="menu-btn ">09/21</a><a href="20260918.html" class="menu-btn ">09/18</a><a href="20260917.html" class="menu-btn ">09/17</a><a href="20260916.html" class="menu-btn ">09/16</a><a href="20260915.html" class="menu-btn ">09/15</a><a href="20260914.html" class="menu-btn ">09/14</a><a href="20260911.html" class="menu-btn ">09/11</a><a href="20260910.html" class="menu-btn ">09/10</a><a href="20260909.html" class="menu-btn ">09/09</a><a href="20260908.html" class="menu-btn ">09/08</a><a href="20260907.html" class="menu-btn ">09/07</a><a href="20260904.html" class="menu-btn ">09/04</a><a href="20260903.html" class="menu-btn ">09/03</a><a href="20260902.html" class="menu-btn ">09/02</a><a href="20260901.html" class="menu-btn ">09/01</a><a href="20260831.html" class="menu-btn ">08/31</a><a href="20260828.html" class="menu-btn ">08/28</a><a href="20260827.html" class="menu-btn ">08/27</a><a href="20260826.html" class="menu-btn ">08/26</a><a href="20260825.html" class="menu-btn ">08/25</a><a href="20260824.html" class="menu-btn ">08/24</a><a href="20260821.html" class="menu-btn ">08/21</a><a href="20260820.html" class="menu-btn ">08/20</a><a href="20260819.html" class="menu-btn ">08/19</a><a href="20260818.html" class="menu-btn ">08/18</a><a href="20260817.html" class="menu-btn ">08/17</a><a href="20260814.html" class="menu-btn ">08/14</a><a href="20260813.html" class="menu-btn ">08/13</a><a href="20260812.html" class="menu-btn ">08/12</a><a href="20260811.html" class="menu-btn ">08/11</a><a href="20260810.html" class="menu-btn ">08/10</a><a href="20260807.html" class="menu-btn ">08/07</a><a href="20260806.html" class="menu-btn ">08/06</a><a href="20260805.html" class="menu-btn ">08/05</a><a href="20260804.html" class="menu-btn ">08/04</a><a href="20260803.html" class="menu-btn ">08/03</a><a href="20260731.html" class="menu-btn ">07/31</a><a href="20260730.html" class="menu-btn ">07/30</a><a href="20260729.html" class="menu-btn ">07/29</a><a href="20260728.html" class="menu-btn ">07/28</a><a href="20260727.html" class="menu-btn ">07/27</a><a href="20260724.html" class="menu-btn ">07/24</a><a href="20260723.html" class="menu-btn ">07/23</a><a href="20260722.html" class="menu-btn ">07/22</a><a href="20260721.html" class="menu-btn ">07/21</a><a href="20260720.html" class="menu-btn ">07/20</a><a href="20260714.html" class="menu-btn ">07/14</a><a href="20260713.html" class="menu-btn ">07/13</a><a href="20260709.html" class="menu-btn ">07/09</a><a href="20260708.html" class="menu-btn ">07/08</a><a href="20260707.html" class="menu-btn ">07/07</a><a href="20260706.html" class="menu-btn ">07/06</a><a href="20260703.html" class="menu-btn ">07/03</a><a href="20260702.html" class="menu-btn ">07/02</a><a href="20260701.html" class="menu-btn ">07/01</a><a href="20260630.html" class="menu-btn ">06/30</a><a href="20260629.html" class="menu-btn ">06/29</a><a href="20260626.html" class="menu-btn ">06/26</a><a href="20260625.html" class="menu-btn ">06/25</a><a href="20260624.html" class="menu-btn ">06/24</a><a href="20260623.html" class="menu-btn ">06/23</a><a href="20260622.html" class="menu-btn ">06/22</a><a href="20260618.html" class="menu-btn ">06/18</a><a href="20260617.html" class="menu-btn ">06/17</a><a href="20260616.html" class="menu-btn ">06/16</a><a href="20260615.html" class="menu-btn ">06/15</a><a href="20260612.html" class="menu-btn ">06/12</a><a href="20260611.html" class="menu-btn ">06/11</a><a href="20260610.html" class="menu-btn ">06/10</a><a href="20260609.html" class="menu-btn ">06/09</a><a href="20260608.html" class="menu-btn ">06/08</a><a href="20260605.html" class="menu-btn ">06/05</a><a href="20260604.html" class="menu-btn ">06/04</a><a href="20260603.html" class="menu-btn ">06/03</a><a href="20260602.html" class="menu-btn ">06/02</a><a href="20260601.html" class="menu-btn ">06/01</a><a href="20260529.html" class="menu-btn ">05/29</a><a href="20260528.html" class="menu-btn ">05/28</a><a href="20260527.html" class="menu-btn ">05/27</a><a href="20260526.html" class="menu-btn active">05/26</a></div></details></div>
         
         <div class="tab-buttons">
-            <button onclick="switchTab(event, 'summary')" class="tab-btn active">📊 淨值與績效總覽</button>
+            <button onclick="switchTab(event, 'summary')" class="tab-btn active">🏆 ETF 10日強弱排行看板</button>
             <button onclick="switchTab(event, 'focus')" class="tab-btn">🔥 焦點籌碼分析</button>
             <button onclick="switchTab(event, 'details')" class="tab-btn">🔍 各檔 ETF 詳細持股</button>
         </div>
@@ -74,36 +97,33 @@
         
         <div id="tab-summary" class="tab-content active">
             
-            <div class="macro-dashboard" style="background: #ffffff; border: 1px solid #cbd5e1; border-radius: 12px; padding: 20px; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05);">
-                <h2 style="margin-top: 0; color: #0f172a; font-size: 18px; margin-bottom: 15px;">📊 經理人多空水位大盤看板 (自動抓取最新)</h2>
-                <div style="overflow-x: auto;">
-                    <table style="width: 100%; border-collapse: collapse; text-align: left; min-width: 1050px;">
+            <div class="macro-dashboard" style="background: #ffffff; border: 1px solid #cbd5e1; border-radius: 12px; padding: 15px; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05); margin-bottom: 25px;">
+                <h2 style="margin-top: 0; color: #0f172a; font-size: 18px; margin-bottom: 15px; text-align: center;">🏆 ETF 近 10 日強弱勢自動排行</h2>
+                <div style="overflow-x: auto; border-radius: 8px; border: 1px solid #e2e8f0;">
+                    <table>
                         <thead>
-                            <tr style="background-color: #f1f5f9; border-bottom: 2px solid #cbd5e1; height: 42px; color: #334155; font-size: 14px; font-weight: bold; white-space: nowrap;">
-                                <th style="padding: 10px; width: 85px;">代號</th>
-                                <th style="padding: 10px; width: 140px; text-align: left;">ETF 名稱</th>
-                                <th style="padding: 10px; width: 95px; text-align: right;">基金規模</th>
-                                <th style="padding: 10px; width: 85px; text-align: right;">最新淨值</th>
-                                <th style="padding: 10px; width: 85px; text-align: right;">近 5 日</th>
-                                <th style="padding: 10px; width: 85px; text-align: right;">近 10 日</th>
-                                <th style="padding: 10px; width: 85px; text-align: right;">近 30 日</th>
-                                <th style="padding: 10px; width: 95px; text-align: right;">股票比重</th>
-                                <th style="padding: 10px; width: 95px; text-align: right;">現金比重</th>
-                                <th style="padding: 10px; text-align: right;">操盤動態</th>
+                            <tr style="height: 48px; color: #334155; font-size: 14px; font-weight: bold; white-space: nowrap;">
+                                <th class="freeze-col" style="padding: 12px 18px; width: 180px; text-align: left;">ETF 標的</th>
+                                <th class="hide-on-mobile" style="padding: 12px 18px; width: 100px; text-align: right;">規模</th>
+                                <th style="padding: 12px 18px; width: 90px; text-align: right;">淨值</th>
+                                <th style="padding: 12px 18px; width: 90px; text-align: right;">近 5 日</th>
+                                <th class="highlight-col" style="padding: 12px 18px; width: 100px; text-align: right; color: #1d4ed8; border-radius: 6px 6px 0 0;">🎯 10 日排名</th>
+                                <th class="hide-on-mobile" style="padding: 12px 18px; width: 90px; text-align: right;">近 30 日</th>
                             </tr>
                         </thead>
                         <tbody>
-            <tr style="border-bottom: 1px solid #e2e8f0; height: 45px; font-size: 15px; white-space: nowrap;">
-                <td style="padding: 10px; font-family: monospace; font-weight: bold; color: #1e293b;">00988A</td>
-                <td style="padding: 10px; font-weight: 700; color: #334155; text-align: left;">統一全球創新 </td>
-                <td style="padding: 10px; text-align: right; color: #475569; font-weight: 600;">424.85 億</td>
-                <td style="padding: 10px; text-align: right; font-weight: 700; color: #1e293b;">21.24</td>
-                <td style="padding: 10px; text-align: right;"><span style="color:#94a3b8;">-</span></td>
-                <td style="padding: 10px; text-align: right;"><span style="color:#94a3b8;">-</span></td>
-                <td style="padding: 10px; text-align: right;"><span style="color:#94a3b8;">-</span></td>
-                <td style="padding: 10px; text-align: right; color: #0284c7; font-weight: 700;">97.89%</td>
-                <td style="padding: 10px; text-align: right; color: #16a34a; font-weight: 700;">2.29%</td>
-                <td style="padding: 10px; text-align: right;"><span style="color: #64748b; font-style: italic;">無對比資料</span></td>
+            <tr class="macro-row" style="height: 56px; font-size: 15px; white-space: nowrap;">
+                <td class="freeze-col" style="padding: 12px 18px; text-align: left;">
+                    <div class="etf-info-cell">
+                        <span class="etf-code-badge">00988A</span>
+                        <span style="font-weight: 700; color: #1e293b; font-size: 15px;">🥇 統一全球創新 </span>
+                    </div>
+                </td>
+                <td class="hide-on-mobile" style="padding: 12px 18px; text-align: right; color: #475569; font-weight: 600;">424.85 億</td>
+                <td style="padding: 12px 18px; text-align: right; font-weight: 700; color: #1e293b;">21.24</td>
+                <td style="padding: 12px 18px; text-align: right;"><span style="color:#94a3b8;">-</span></td>
+                <td class="highlight-col" style="padding: 12px 18px; text-align: right; font-size: 16px;"><span style="color:#94a3b8;">-</span></td>
+                <td class="hide-on-mobile" style="padding: 12px 18px; text-align: right;"><span style="color:#94a3b8;">-</span></td>
             </tr>
             </tbody>
                     </table>
@@ -127,7 +147,7 @@
                 <details>
                     <summary>
                         <div class="etf-title">
-                            <span>00988A</span> 統一全球創新  <span style="font-size: 14px; font-weight: 600; color: #0f172a; margin-left: 12px; background: #e2e8f0; padding: 4px 10px; border-radius: 20px;">規模: 424.85 億</span> <span style="font-size: 14px; font-weight: 600; color: #166534; margin-left: 8px; background: #dcfce7; padding: 4px 10px; border-radius: 20px;">總持股 97.89% | 現金 2.29%</span>
+                            🥇 <span class="etf-code">00988A</span> 統一全球創新  <span style="font-size: 14px; font-weight: 600; color: #0f172a; margin-left: 12px; background: #e2e8f0; padding: 4px 10px; border-radius: 20px;">規模: 424.85 億</span> <span style="font-size: 14px; font-weight: 600; color: #166534; margin-left: 8px; background: #dcfce7; padding: 4px 10px; border-radius: 20px;">總持股 97.89%</span>
                             <span class="toggle-hint">點擊展開/收折 ▾</span>
                         </div>
                     </summary>

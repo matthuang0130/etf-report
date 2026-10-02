@@ -17,7 +17,7 @@ ETF_MAPPING = {
     "00405A": "富邦台灣龍耀", "00402A": "安聯美國科技",
     "00406A": "中信台灣收益成長",
     "00997A": "群益美國增長",
-    "00409A": "復華全球50"   # 🌟 新增復華主動全球50
+    "00409A": "復華全球50"
 }
 
 STOCK_NAME_MAP = {
@@ -73,8 +73,8 @@ BASE_HTML = """
         .etf-section details[open] > summary { border-bottom: 2px solid #e2e8f0; }
         .etf-details-content { padding: 20px; background: #fafafa; }
         
-        .etf-title { font-size: 20px; font-weight: bold; color: #2c3e50; display: flex; align-items: center; flex-wrap: wrap; gap: 6px; width: 100%; margin: 0; }
-        .etf-title span { color: #e74c3c; margin-right: 4px; }
+        .etf-title { font-size: 18px; font-weight: bold; color: #2c3e50; display: flex; align-items: center; flex-wrap: wrap; gap: 6px; width: 100%; margin: 0; }
+        .etf-title span.etf-code { color: #e74c3c; margin-right: 4px; }
         .toggle-hint { margin-left: auto; font-size: 13px; color: #64748b; font-weight: normal; border: 1px solid #cbd5e1; padding: 4px 10px; border-radius: 20px; background: #fff; }
         
         .tables-grid { display: flex; gap: 20px; }
@@ -89,6 +89,29 @@ BASE_HTML = """
         .more-dates-dropdown{position:absolute;top:100%;left:0;margin-top:8px;background:#fff;border:1px solid #e2e8f0;border-radius:12px;box-shadow:0 10px 25px rgba(0,0,0,0.1);padding:16px;display:grid;grid-template-columns:repeat(4,1fr);gap:10px;z-index:100;min-width:320px;}
         details.chart-details>summary{list-style:none;cursor:pointer;background:#f0f9ff;border:1px dashed #7dd3fc;color:#0284c7;padding:10px 15px;border-radius:8px;font-size:15px;font-weight:bold;} 
         details.chart-details>summary::-webkit-details-marker{display:none;}
+        
+        /* 🔥 新增：大盤看板 UI 進化與手機版響應式設定 */
+        .macro-dashboard table { border-collapse: collapse; width: 100%; min-width: 100%; }
+        .macro-dashboard th, .macro-dashboard td { border-bottom: 1px solid #e2e8f0; }
+        .macro-row { transition: background-color 0.2s ease; }
+        .macro-row:hover { background-color: #f8fafc; }
+        .macro-row:hover .freeze-col { background-color: #f8fafc; }
+        .freeze-col { position: sticky; left: 0; z-index: 2; border-right: 1px solid #e2e8f0; background-color: #fff; transition: background-color 0.2s ease; }
+        .macro-dashboard thead th { position: sticky; top: 0; z-index: 1; background-color: #f1f5f9; border-bottom: 2px solid #cbd5e1; }
+        .macro-dashboard thead th.freeze-col { z-index: 3; }
+        .highlight-col { background-color: #f8fafc; }
+        
+        /* 🔥 電腦版並排，手機版折疊的標籤設計 */
+        .etf-info-cell { display: flex; align-items: center; gap: 10px; }
+        .etf-code-badge { background: #f1f5f9; color: #475569; padding: 3px 8px; border-radius: 6px; font-family: monospace; font-size: 13px; font-weight: bold; border: 1px solid #e2e8f0; }
+        
+        @media (max-width: 768px) { 
+            .hide-on-mobile { display: none !important; } 
+            .macro-dashboard table { min-width: 500px; }
+            .freeze-col { box-shadow: 2px 0 5px -2px rgba(0,0,0,0.15); border-right: none; }
+            .etf-info-cell { flex-direction: column; align-items: flex-start; gap: 4px; }
+            .etf-code-badge { font-size: 12px; padding: 2px 6px; }
+        }
     </style>
 </head>
 <body>
@@ -100,7 +123,7 @@ BASE_HTML = """
         {MENU_HTML}
         
         <div class="tab-buttons">
-            <button onclick="switchTab(event, 'summary')" class="tab-btn active">📊 淨值與績效總覽</button>
+            <button onclick="switchTab(event, 'summary')" class="tab-btn active">🏆 ETF 10日強弱排行看板</button>
             <button onclick="switchTab(event, 'focus')" class="tab-btn">🔥 焦點籌碼分析</button>
             <button onclick="switchTab(event, 'details')" class="tab-btn">🔍 各檔 ETF 詳細持股</button>
         </div>
@@ -155,11 +178,8 @@ def smart_read_and_clean(filepaths):
 def find_header_row(df):
     for i in range(min(50, len(df))): 
         row_str = "".join([str(x) for x in df.iloc[i].values if pd.notna(x)]).lower().replace(' ', '').replace('\n', '')
-        
-        # 無視期貨標題
         if any(k in row_str for k in ['期貨代', '選擇權', '契約', '保證金']):
             continue
-            
         has_code = ('代' in row_str or 'code' in row_str)
         has_target = any(k in row_str for k in ['權重', '比例', '股數', '數量', 'qty', 'weight', '%', '佔', '金額', '張', '持股'])
         if has_code and has_target: return i
@@ -171,8 +191,6 @@ def _smart_read_and_clean_raw(filepaths):
     
     for filepath in filepaths:
         if os.path.basename(filepath).startswith('~$'): continue
-        is_debug_target = "00981A" in filepath
-        
         try:
             if filepath.endswith('.csv'):
                 try: df_raw = pd.read_csv(filepath, encoding='utf-8', header=None, sep=None, engine='python')
@@ -192,12 +210,8 @@ def _smart_read_and_clean_raw(filepaths):
                             df_raw = pd.read_csv(filepath, encoding='utf-8', header=None, sep=None, engine='python')
                             sheets = {'Sheet1': df_raw}
                         except:
-                            try:
-                                df_raw = pd.read_csv(filepath, encoding='big5', header=None, sep=None, engine='python')
-                                sheets = {'Sheet1': df_raw}
-                            except: 
-                                if is_debug_target: print(f"  [除錯] ❌ {os.path.basename(filepath)} 無法讀取")
-                                continue
+                            try: df_raw = pd.read_csv(filepath, encoding='big5', header=None, sep=None, engine='python'); sheets = {'Sheet1': df_raw}
+                            except: continue
 
             for sheet_name, df in sheets.items():
                 look_for_fund = False
@@ -208,8 +222,7 @@ def _smart_read_and_clean_raw(filepaths):
                     row_str = "".join(row_vals)
                     
                     if not fund_size:
-                        if any(k in row_str for k in ['規模', '淨資產', '資產淨值', '資產價值', '淨值總額']):
-                            look_for_fund = True
+                        if any(k in row_str for k in ['規模', '淨資產', '資產淨值', '資產價值', '淨值總額']): look_for_fund = True
                         if look_for_fund:
                             vals = re.findall(r'\d+\.?\d*', row_str)
                             for v in vals:
@@ -222,8 +235,7 @@ def _smart_read_and_clean_raw(filepaths):
                                 except: pass
 
                     if not nav:
-                        if any(k in row_str.lower() for k in ['單位淨值', '每單位淨值', '淨值', 'nav', '淨資產', '資產淨值']):
-                            look_for_nav = True
+                        if any(k in row_str.lower() for k in ['單位淨值', '每單位淨值', '淨值', 'nav', '淨資產', '資產淨值']): look_for_nav = True
                         if look_for_nav:
                             vals = re.findall(r'\d+\.\d+', row_str)
                             for v in vals:
@@ -247,12 +259,10 @@ def _smart_read_and_clean_raw(filepaths):
                                 except: pass
 
                 header_idx = find_header_row(df)
-                if header_idx == -1: 
-                    continue 
+                if header_idx == -1: continue 
 
                 df.columns = df.iloc[header_idx].astype(str)
 
-                # 🌟 底部期貨煞車系統
                 end_idx = len(df)
                 for j in range(header_idx + 1, len(df)):
                     row_str = "".join([str(x) for x in df.iloc[j].values if pd.notna(x)]).replace(' ', '')
@@ -270,8 +280,7 @@ def _smart_read_and_clean_raw(filepaths):
                     elif not col_qty and ('股' in c_str or '張' in c_str or 'qty' in c_str or '數量' in c_str) and '權' not in c_str and '%' not in c_str: col_qty = c
                     elif not col_weight and ('權' in c_str or '比' in c_str or '%' in c_str or 'weight' in c_str): col_weight = c
 
-                if not (col_code and col_qty):
-                    continue
+                if not (col_code and col_qty): continue
 
                 cols_to_keep = [col_code, col_qty]
                 if col_name: cols_to_keep.append(col_name)
@@ -294,8 +303,7 @@ def _smart_read_and_clean_raw(filepaths):
                 clean_df['Qty'] = pd.to_numeric(clean_df['Qty'], errors='coerce')
                 clean_df = clean_df.dropna(subset=['Qty'])
                 all_clean_data.append(clean_df)
-        except Exception as e: 
-            pass
+        except Exception as e: pass
 
     if all_clean_data:
         combined = pd.concat(all_clean_data, ignore_index=True)
@@ -303,7 +311,7 @@ def _smart_read_and_clean_raw(filepaths):
     return None, fund_size, nav, st_wt_raw, ca_wt_raw
 
 def generate():
-    print(f"▶ 啟動 ETF 光速報表引擎 (底部期貨防護版)...")
+    print(f"▶ 啟動 ETF 光速報表引擎 (排行榜 UI 細節優化版)...")
     os.makedirs('dist', exist_ok=True)
     all_files = [f for f in glob.glob(os.path.join('data', "*")) if not os.path.basename(f).startswith('.')]
     if not all_files:
@@ -345,9 +353,7 @@ def generate():
 
     for target_date in sorted_dates:
         print(f"⚙️ 正在建構 [{target_date}] 的報表與焦點籌碼...")
-        etf_blocks_html = ""
-        macro_rows_html = "" 
-
+        
         curr_diffs = daily_diff_data[target_date]
         co_buy_stocks, co_sell_stocks = {}, {}
         for code, etf_map in curr_diffs.items():
@@ -402,7 +408,12 @@ def generate():
         </div>
         '''
 
-        for etf_code, dates_files in sorted(etf_history.items()):
+        # ================================
+        # 🌟 第一階段：蒐集資料並進行「10日排名」
+        # ================================
+        etf_render_data = []
+
+        for etf_code, dates_files in etf_history.items():
             available_dates = sorted([d for d in dates_files.keys() if d <= target_date], reverse=True)
             if not available_dates: continue 
                 
@@ -413,35 +424,22 @@ def generate():
             df_today, size_today, nav_today, st_wt_raw, ca_wt_raw = res_today
             valid_holdings = df_today[~df_today['Code'].astype(str).str.contains('元|現金|nan|小計|合計|總計', case=False, na=False)]
             st_wt = st_wt_raw if st_wt_raw is not None else valid_holdings['Weight'].sum()
-            ca_wt = ca_wt_raw if ca_wt_raw is not None else (max(0, 100.0 - st_wt) if st_wt > 0 else 0)
             
             trend_cache[etf_code][actual_date] = {'st': st_wt, 'nav': nav_today}
 
             has_yest = len(available_dates) >= 2
             if has_yest:
                 res_yest = smart_read_and_clean(dates_files[available_dates[1]])
-                df_yest, _, _, st_wt_yest_raw, _ = res_yest
-                
-                if df_yest is not None:
-                    valid_holdings_yest = df_yest[~df_yest['Code'].astype(str).str.contains('元|現金|nan|小計|合計|總計', case=False, na=False)]
-                    st_wt_yest = st_wt_yest_raw if st_wt_yest_raw is not None else valid_holdings_yest['Weight'].sum()
-                    weight_diff = st_wt - st_wt_yest
-                    diff_sign = "+" if weight_diff >= 0 else ""
-                    if weight_diff > 0.05: action_badge = f'<span style="color: #166534; font-weight: bold;">加碼 {diff_sign}{weight_diff:.2f}% 📈</span>'
-                    elif weight_diff < -0.05: action_badge = f'<span style="color: #991b1b; font-weight: bold;">減碼 {diff_sign}{weight_diff:.2f}% 📉</span>'
-                    else: action_badge = '<span style="color: #475569;">水位持平 ⚖️</span>'
-                else:
-                    action_badge = '<span style="color: #64748b; font-style: italic;">無對比資料</span>'
-            else:
-                df_yest, action_badge = None, '<span style="color: #64748b; font-style: italic;">無對比資料</span>'
+                df_yest = res_yest[0]
+            else: 
+                df_yest = None
 
             date_tag = f'<span style="font-size: 13px; color: #ef4444; margin-left: 8px;">(資料: {actual_date[4:6]}/{actual_date[6:8]})</span>' if actual_date != target_date else ""
             size_badge = f'<span style="font-size: 14px; font-weight: 600; color: #0f172a; margin-left: 12px; background: #e2e8f0; padding: 4px 10px; border-radius: 20px;">規模: {size_today}</span>' if size_today else ""
-            ratio_badge = f'<span style="font-size: 14px; font-weight: 600; color: #166534; margin-left: 8px; background: #dcfce7; padding: 4px 10px; border-radius: 20px;">總持股 {st_wt:.2f}% | 現金 {ca_wt:.2f}%</span>' if st_wt > 0 else ""
+            ratio_badge = f'<span style="font-size: 14px; font-weight: 600; color: #166534; margin-left: 8px; background: #dcfce7; padding: 4px 10px; border-radius: 20px;">總持股 {st_wt:.2f}%</span>' if st_wt > 0 else ""
 
             chart_labels, chart_data = [], []
-            chart_dates = list(available_dates) 
-            chart_dates.reverse() 
+            chart_dates = list(available_dates); chart_dates.reverse() 
             
             for cd in chart_dates:
                 if cd not in trend_cache[etf_code]:
@@ -462,36 +460,63 @@ def generate():
             nav_30 = trend_cache[etf_code][available_dates[30]]['nav'] if len(available_dates) > 30 else None
 
             def calc_ret(t, p): return ((t - p) / p * 100) if (t and p and p > 0) else None
-            
             ret_5, ret_10, ret_30 = calc_ret(nav_today, nav_5), calc_ret(nav_today, nav_10), calc_ret(nav_today, nav_30)
-
-            def format_ret(v):
-                if v is None: return '<span style="color:#94a3b8;">-</span>'
-                c = "#dc2626" if v > 0 else ("#16a34a" if v < 0 else "#475569")
-                s = "+" if v > 0 else ""
-                return f'<span style="color:{c}; font-weight:bold;">{s}{v:.2f}%</span>'
-
-            nav_disp = f"{nav_today:.2f}" if nav_today else "-"
-            etf_name = ETF_MAPPING.get(etf_code, "其他投信成分股")
             
+            etf_name = ETF_MAPPING.get(etf_code, "其他投信成分股")
+
+            etf_render_data.append({
+                'etf_code': etf_code, 'etf_name': etf_name, 'date_tag': date_tag,
+                'size_today': size_today, 'nav_today': nav_today, 
+                'ret_5': ret_5, 'ret_10': ret_10, 'ret_10_sort': ret_10 if ret_10 is not None else -9999, 'ret_30': ret_30,
+                'size_badge': size_badge, 'ratio_badge': ratio_badge,
+                'chart_labels': chart_labels, 'chart_data': chart_data, 'valid_holdings': valid_holdings,
+                'has_yest': has_yest, 'df_today': df_today, 'df_yest': df_yest
+            })
+
+        # ✨ 針對 10 日報酬由高至低排名
+        etf_render_data.sort(key=lambda x: x['ret_10_sort'], reverse=True)
+
+        # ================================
+        # 🌟 第二階段：依照名次產出 HTML
+        # ================================
+        macro_rows_html = ""
+        etf_blocks_html = ""
+
+        def format_ret(v):
+            if v is None: return '<span style="color:#94a3b8;">-</span>'
+            c = "#dc2626" if v > 0 else ("#16a34a" if v < 0 else "#475569")
+            s = "+" if v > 0 else ""
+            return f'<span style="color:{c}; font-weight:bold;">{s}{v:.2f}%</span>'
+
+        for rank, data in enumerate(etf_render_data, 1):
+            medal = ""
+            if rank == 1: medal = "🥇 "
+            elif rank == 2: medal = "🥈 "
+            elif rank == 3: medal = "🥉 "
+            elif rank <= 5: medal = f"<span style='color:#94a3b8; font-size:14px; font-weight:normal; margin-right:4px;'>#{rank}</span>"
+            
+            nav_disp = f"{data['nav_today']:.2f}" if data['nav_today'] else "-"
+            
+            # 🔥 移除操作動態，調整儲存格 padding，美化 ETF 代號標籤
             macro_rows_html += f'''
-            <tr style="border-bottom: 1px solid #e2e8f0; height: 45px; font-size: 15px; white-space: nowrap;">
-                <td style="padding: 10px; font-family: monospace; font-weight: bold; color: #1e293b;">{etf_code}</td>
-                <td style="padding: 10px; font-weight: 700; color: #334155; text-align: left;">{etf_name} {date_tag}</td>
-                <td style="padding: 10px; text-align: right; color: #475569; font-weight: 600;">{size_today or '-'}</td>
-                <td style="padding: 10px; text-align: right; font-weight: 700; color: #1e293b;">{nav_disp}</td>
-                <td style="padding: 10px; text-align: right;">{format_ret(ret_5)}</td>
-                <td style="padding: 10px; text-align: right;">{format_ret(ret_10)}</td>
-                <td style="padding: 10px; text-align: right;">{format_ret(ret_30)}</td>
-                <td style="padding: 10px; text-align: right; color: #0284c7; font-weight: 700;">{st_wt:.2f}%</td>
-                <td style="padding: 10px; text-align: right; color: #16a34a; font-weight: 700;">{ca_wt:.2f}%</td>
-                <td style="padding: 10px; text-align: right;">{action_badge}</td>
+            <tr class="macro-row" style="height: 56px; font-size: 15px; white-space: nowrap;">
+                <td class="freeze-col" style="padding: 12px 18px; text-align: left;">
+                    <div class="etf-info-cell">
+                        <span class="etf-code-badge">{data['etf_code']}</span>
+                        <span style="font-weight: 700; color: #1e293b; font-size: 15px;">{medal}{data['etf_name']} {data['date_tag']}</span>
+                    </div>
+                </td>
+                <td class="hide-on-mobile" style="padding: 12px 18px; text-align: right; color: #475569; font-weight: 600;">{data['size_today'] or '-'}</td>
+                <td style="padding: 12px 18px; text-align: right; font-weight: 700; color: #1e293b;">{nav_disp}</td>
+                <td style="padding: 12px 18px; text-align: right;">{format_ret(data['ret_5'])}</td>
+                <td class="highlight-col" style="padding: 12px 18px; text-align: right; font-size: 16px;">{format_ret(data['ret_10'])}</td>
+                <td class="hide-on-mobile" style="padding: 12px 18px; text-align: right;">{format_ret(data['ret_30'])}</td>
             </tr>
             '''
 
             chart_html = ""
-            if len(chart_data) > 1:
-                chart_id = f"chart_{etf_code}_{target_date}"
+            if len(data['chart_data']) > 1:
+                chart_id = f"chart_{data['etf_code']}_{target_date}"
                 chart_html = f'''
                 <details class="chart-details" style="margin-bottom: 20px; outline: none;">
                     <summary>📈 點擊展開：持股水位連續走勢圖</summary>
@@ -509,10 +534,9 @@ def generate():
                     </div>
                 </details>
                 <script>
-                const allLabels_{chart_id} = [{','.join(chart_labels)}];
-                const allData_{chart_id} = [{','.join(chart_data)}];
+                const allLabels_{chart_id} = [{','.join(data['chart_labels'])}];
+                const allData_{chart_id} = [{','.join(data['chart_data'])}];
                 let chartInst_{chart_id} = null;
-
                 function updateChart_{chart_id}(days) {{
                     let labels = allLabels_{chart_id}; let data = allData_{chart_id};
                     if (days !== 'all') {{ const sliceCount = parseInt(days, 10); labels = labels.slice(-sliceCount); data = data.slice(-sliceCount); }}
@@ -528,18 +552,17 @@ def generate():
                 '''
 
             top20_html = ""
-            for rank, row in enumerate(valid_holdings.sort_values(by=['Weight', 'Qty'], ascending=[False, False]).head(20).itertuples(), 1):
+            for rank_item, row in enumerate(data['valid_holdings'].sort_values(by=['Weight', 'Qty'], ascending=[False, False]).head(20).itertuples(), 1):
                 base_code = str(row.Code).replace('.0', '').strip().split()[0]
                 name_display = STOCK_NAME_MAP.get(base_code, str(row.Name))
                 weight_str = f"{row.Weight:.2f}%" if row.Weight > 0 else f"{int(row.Qty):,} 股"
-                top20_html += f'<tr style="border-bottom: 1px solid #e2e8f0; height: 48px;"><td style="padding: 8px; color: #64748b; font-size: 14px; font-weight: bold; font-style: italic; white-space: nowrap;">#{rank}</td><td style="padding: 8px; font-family: monospace; color: #475569; font-size: 15px; font-weight: 600; white-space: nowrap;">{base_code}</td><td style="padding: 8px; text-align: left; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; font-weight: 700; color: #1e293b; font-size: 16px;">{name_display}</td><td style="padding: 8px; text-align: right; white-space: nowrap; color: #0ea5e9; font-weight: 900; font-size: 16px;">{weight_str}</td></tr>'
+                top20_html += f'<tr style="border-bottom: 1px solid #e2e8f0; height: 48px;"><td style="padding: 8px; color: #64748b; font-size: 14px; font-weight: bold; font-style: italic; white-space: nowrap;">#{rank_item}</td><td style="padding: 8px; font-family: monospace; color: #475569; font-size: 15px; font-weight: 600; white-space: nowrap;">{base_code}</td><td style="padding: 8px; text-align: left; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; font-weight: 700; color: #1e293b; font-size: 16px;">{name_display}</td><td style="padding: 8px; text-align: right; white-space: nowrap; color: #0ea5e9; font-weight: 900; font-size: 16px;">{weight_str}</td></tr>'
             
             top20_block = f'<div class="table-box" style="margin-top: 25px; background-color: #fff; border: 1px solid #e2e8f0; border-radius: 8px; overflow: hidden; box-shadow: 0 1px 3px rgba(0,0,0,0.05);"><div class="box-header" style="background-color: #334155; color: white; padding: 12px 16px; font-weight: bold; font-size: 16px;">👑 前 20 大持股</div><div><table style="width: 100%; border-collapse: collapse; text-align: left; background-color: #fff; table-layout: fixed;"><thead><tr style="background-color: #f8fafc; border-bottom: 2px solid #e2e8f0; height: 40px; color: #475569; font-size: 14px; font-weight: bold;"><th style="padding: 8px; width: 45px; white-space: nowrap;">排行</th><th style="padding: 8px; width: 70px; white-space: nowrap;">代號</th><th style="padding: 8px; text-align: left; white-space: nowrap;">股名</th><th style="padding: 8px; width: 95px; text-align: right; white-space: nowrap;">比例/股數</th></tr></thead><tbody>{top20_html}</tbody></table></div></div>'
 
             buy_html, sell_html, buy_count, sell_count = "", "", 0, 0
-
-            if has_yest and df_yest is not None:
-                df_merged = pd.merge(df_today, df_yest, on='Code', how='outer', suffixes=('_T', '_Y')).fillna({'Qty_T': 0, 'Qty_Y': 0})
+            if data['has_yest'] and data['df_yest'] is not None:
+                df_merged = pd.merge(data['df_today'], data['df_yest'], on='Code', how='outer', suffixes=('_T', '_Y')).fillna({'Qty_T': 0, 'Qty_Y': 0})
                 df_merged['Diff'] = df_merged['Qty_T'] - df_merged['Qty_Y']
                 df_merged['Name'] = df_merged['Name_T'].fillna(df_merged['Name_Y']).fillna("未知名稱")
                 df_diff = df_merged[df_merged['Diff'] != 0].copy()
@@ -549,28 +572,25 @@ def generate():
                     is_buy = diff_val > 0
                     abs_qty = abs(diff_val)
                     qty_str = f"+{abs_qty:,}" if is_buy else f"-{abs_qty:,}"
-                    
                     base_code = str(row['Code']).replace('.0', '').strip().split()[0]
                     if '元' in base_code or '現金' in base_code or base_code == 'nan': continue
-
                     is_new = is_buy and (row['Qty_Y'] == 0)
                     name_display = f"<span style='color: #ef4444; font-weight: bold; font-size: 13px; margin-right: 4px;'>[新]</span>{STOCK_NAME_MAP.get(base_code, str(row['Name']))}" if is_new else STOCK_NAME_MAP.get(base_code, str(row['Name']))
-
                     item_html = f'<tr style="border-bottom: 1px solid #f1f5f9; height: 50px;"><td style="padding: 10px 8px; font-family: monospace; color: #475569; font-size: 15px; font-weight: 600; white-space: nowrap;">{base_code}</td><td style="padding: 10px 8px; text-align: left; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; font-weight: 700; color: #1e293b; font-size: 16px;">{name_display}</td><td style="padding: 10px 8px; text-align: right; font-weight: 900; font-size: 16px; white-space: nowrap;" class="{"val-buy" if is_buy else "val-sell"}">{qty_str}</td></tr>'
                     if is_buy: buy_html += item_html; buy_count += 1
                     else: sell_html += item_html; sell_count += 1
 
             if not buy_html: buy_html = '<tr><td colspan="3" style="text-align: center; padding: 20px; color: #94a3b8; font-size: 14px;">- 無異動資料 -</td></tr>'
             if not sell_html: sell_html = '<tr><td colspan="3" style="text-align: center; padding: 20px; color: #94a3b8; font-size: 14px;">- 無異動資料 -</td></tr>'
-
             table_head = '<div><table style="width: 100%; border-collapse: collapse; text-align: left; background-color: #fff; table-layout: fixed;"><thead><tr style="background-color: #f8fafc; border-bottom: 2px solid #e2e8f0; height: 40px; color: #475569; font-size: 14px; font-weight: bold;"><th style="padding: 8px; width: 75px; white-space: nowrap;">代號</th><th style="padding: 8px; text-align: left; white-space: nowrap;">股名</th><th style="padding: 8px; width: 110px; text-align: right; white-space: nowrap;">異動股數</th></tr></thead><tbody>'
             
+            etf_title_medal = medal if rank <= 3 else ""
             etf_blocks_html += f'''
             <div class="etf-section">
                 <details>
                     <summary>
                         <div class="etf-title">
-                            <span>{etf_code}</span> {etf_name} {date_tag} {size_badge} {ratio_badge}
+                            {etf_title_medal}<span class="etf-code">{data['etf_code']}</span> {data['etf_name']} {data['date_tag']} {data['size_badge']} {data['ratio_badge']}
                             <span class="toggle-hint">點擊展開/收折 ▾</span>
                         </div>
                     </summary>
@@ -594,23 +614,20 @@ def generate():
 
         macro_dashboard_html = ""
         if macro_rows_html:
+            # 🔥 移除了操盤動態表頭，調整欄位配比
             macro_dashboard_html = f'''
-            <div class="macro-dashboard" style="background: #ffffff; border: 1px solid #cbd5e1; border-radius: 12px; padding: 20px; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05);">
-                <h2 style="margin-top: 0; color: #0f172a; font-size: 18px; margin-bottom: 15px;">📊 經理人多空水位大盤看板 (自動抓取最新)</h2>
-                <div style="overflow-x: auto;">
-                    <table style="width: 100%; border-collapse: collapse; text-align: left; min-width: 1050px;">
+            <div class="macro-dashboard" style="background: #ffffff; border: 1px solid #cbd5e1; border-radius: 12px; padding: 15px; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05); margin-bottom: 25px;">
+                <h2 style="margin-top: 0; color: #0f172a; font-size: 18px; margin-bottom: 15px; text-align: center;">🏆 ETF 近 10 日強弱勢自動排行</h2>
+                <div style="overflow-x: auto; border-radius: 8px; border: 1px solid #e2e8f0;">
+                    <table>
                         <thead>
-                            <tr style="background-color: #f1f5f9; border-bottom: 2px solid #cbd5e1; height: 42px; color: #334155; font-size: 14px; font-weight: bold; white-space: nowrap;">
-                                <th style="padding: 10px; width: 85px;">代號</th>
-                                <th style="padding: 10px; width: 140px; text-align: left;">ETF 名稱</th>
-                                <th style="padding: 10px; width: 95px; text-align: right;">基金規模</th>
-                                <th style="padding: 10px; width: 85px; text-align: right;">最新淨值</th>
-                                <th style="padding: 10px; width: 85px; text-align: right;">近 5 日</th>
-                                <th style="padding: 10px; width: 85px; text-align: right;">近 10 日</th>
-                                <th style="padding: 10px; width: 85px; text-align: right;">近 30 日</th>
-                                <th style="padding: 10px; width: 95px; text-align: right;">股票比重</th>
-                                <th style="padding: 10px; width: 95px; text-align: right;">現金比重</th>
-                                <th style="padding: 10px; text-align: right;">操盤動態</th>
+                            <tr style="height: 48px; color: #334155; font-size: 14px; font-weight: bold; white-space: nowrap;">
+                                <th class="freeze-col" style="padding: 12px 18px; width: 180px; text-align: left;">ETF 標的</th>
+                                <th class="hide-on-mobile" style="padding: 12px 18px; width: 100px; text-align: right;">規模</th>
+                                <th style="padding: 12px 18px; width: 90px; text-align: right;">淨值</th>
+                                <th style="padding: 12px 18px; width: 90px; text-align: right;">近 5 日</th>
+                                <th class="highlight-col" style="padding: 12px 18px; width: 100px; text-align: right; color: #1d4ed8; border-radius: 6px 6px 0 0;">🎯 10 日排名</th>
+                                <th class="hide-on-mobile" style="padding: 12px 18px; width: 90px; text-align: right;">近 30 日</th>
                             </tr>
                         </thead>
                         <tbody>{macro_rows_html}</tbody>
