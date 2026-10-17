@@ -43,6 +43,12 @@ def get_driver(download_path):
     prefs = {"download.default_directory": abs_download_path, "download.prompt_for_download": False}
     chrome_options.add_experimental_option("prefs", prefs)
     chrome_options.add_argument("--headless=new") 
+    
+    # 🐧 同時相容 Windows 本地與 GitHub Actions (Ubuntu Linux) 環境
+    chrome_options.add_argument("--no-sandbox")
+    chrome_options.add_argument("--disable-dev-shm-usage")
+    chrome_options.add_argument("--disable-gpu")
+    
     chrome_options.add_argument("user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36")
     driver = webdriver.Chrome(service=Service(ChromeDriverManager().install()), options=chrome_options)
     driver.execute_cdp_cmd('Page.setDownloadBehavior', {'behavior': 'allow', 'downloadPath': abs_download_path})
@@ -106,86 +112,91 @@ def run_download():
         except Exception as e: 
             print(f"  ❌ {code} 失敗: {e}")
 
-    # 2. 安聯 0402A
-    print("🌐 抓取 0402A (安聯)...")
-    temp_folder = "temp_402"
-    try:
-        if not os.path.exists(temp_folder): 
-            os.makedirs(temp_folder)
-        driver = get_driver(temp_folder)
-        driver.get("https://etf.allianzgi.com.tw/etf-info/E0003?tab=4")
-        time.sleep(10)
-        print("  ⚡ 展開安聯網頁所有隱藏持股...")
-        
-        while True:
-            try:
-                more_btns = driver.find_elements(By.XPATH, "//*[contains(text(), '顯示更多')]")
-                visible_btns = [b for b in more_btns if b.is_displayed()]
-                if not visible_btns: 
+    # 2. 安聯 (0402A 與 新增 00412A)
+    allianz_etfs = [
+        ("0402A", "https://etf.allianzgi.com.tw/etf-info/E0003?tab=4"),
+        ("00412A", "https://etf.allianzgi.com.tw/etf-info/E0004?tab=4")
+    ]
+    for code, url in allianz_etfs:
+        print(f"🌐 抓取 {code} (安聯)...")
+        temp_folder = f"temp_{code.lower()}"
+        try:
+            if not os.path.exists(temp_folder): 
+                os.makedirs(temp_folder)
+            driver = get_driver(temp_folder)
+            driver.get(url)
+            time.sleep(10)
+            print(f"  ⚡ 展開 {code} 網頁所有隱藏持股...")
+            
+            while True:
+                try:
+                    more_btns = driver.find_elements(By.XPATH, "//*[contains(text(), '顯示更多')]")
+                    visible_btns = [b for b in more_btns if b.is_displayed()]
+                    if not visible_btns: 
+                        break
+                    driver.execute_script("arguments[0].scrollIntoView({block: 'center'});", visible_btns[0])
+                    time.sleep(1)
+                    driver.execute_script("arguments[0].click();", visible_btns[0])
+                    time.sleep(2)
+                except: 
                     break
-                driver.execute_script("arguments[0].scrollIntoView({block: 'center'});", visible_btns[0])
-                time.sleep(1)
-                driver.execute_script("arguments[0].click();", visible_btns[0])
-                time.sleep(2)
-            except: 
-                break
-        
-        tables = driver.find_elements(By.TAG_NAME, "table")
-        target_data = []
-        for table in tables:
-            rows = table.find_elements(By.TAG_NAME, "tr")
-            data = []
-            for row in rows:
-                cols = row.find_elements(By.XPATH, ".//th | .//td")
-                cols_text = [c.text.strip() for c in cols]
-                if len(cols_text) >= 3 and any(cols_text): 
-                    data.append(cols_text)
-            if data and any('代號' in str(c) or '名稱' in str(c) or '股票' in str(c) for c in data[0]):
-                target_data = data
-                break
-                
-        if len(target_data) > 1:
-            nav_str, size_str, st_wt_str = "", "", ""
-            try:
-                page_text_clean = driver.find_element(By.TAG_NAME, "body").text.replace('\n', ' ').replace('\r', ' ')
-                nav_match = re.search(r'單位淨值.*?(\d+\.\d+)', page_text_clean)
-                size_match = re.search(r'資產價值.*?([\d,]{7,})', page_text_clean) 
-                wt_match = re.search(r'股票.*?\(([\d\.]+)%\)', page_text_clean)
-                
-                if nav_match: 
-                    nav_str = nav_match.group(1).strip()
-                if size_match: 
-                    size_str = size_match.group(1).replace(',', '').strip()
-                if wt_match: 
-                    st_wt_str = wt_match.group(1).strip() + "%"
-            except Exception as e: 
-                pass
+            
+            tables = driver.find_elements(By.TAG_NAME, "table")
+            target_data = []
+            for table in tables:
+                rows = table.find_elements(By.TAG_NAME, "tr")
+                data = []
+                for row in rows:
+                    cols = row.find_elements(By.XPATH, ".//th | .//td")
+                    cols_text = [c.text.strip() for c in cols]
+                    if len(cols_text) >= 3 and any(cols_text): 
+                        data.append(cols_text)
+                if data and any('代號' in str(c) or '名稱' in str(c) or '股票' in str(c) for c in data[0]):
+                    target_data = data
+                    break
+                    
+            if len(target_data) > 1:
+                nav_str, size_str, st_wt_str = "", "", ""
+                try:
+                    page_text_clean = driver.find_element(By.TAG_NAME, "body").text.replace('\n', ' ').replace('\r', ' ')
+                    nav_match = re.search(r'單位淨值.*?(\d+\.\d+)', page_text_clean)
+                    size_match = re.search(r'資產價值.*?([\d,]{7,})', page_text_clean) 
+                    wt_match = re.search(r'股票.*?\(([\d\.]+)%\)', page_text_clean)
+                    
+                    if nav_match: 
+                        nav_str = nav_match.group(1).strip()
+                    if size_match: 
+                        size_str = size_match.group(1).replace(',', '').strip()
+                    if wt_match: 
+                        st_wt_str = wt_match.group(1).strip() + "%"
+                except Exception as e: 
+                    pass
 
-            columns = target_data[0]
-            df = pd.DataFrame(target_data[1:], columns=columns)
-            df = df[~df.astype(str).apply(lambda x: x.str.contains('顯示更多|收合|合計')).any(axis=1)]
-            
-            out_data = []
-            if size_str: 
-                out_data.append(["基金淨資產價值", size_str] + [""] * (len(columns) - 2))
-            if nav_str: 
-                out_data.append(["基金每單位淨值", nav_str] + [""] * (len(columns) - 2))
-            if st_wt_str: 
-                out_data.append(["股票", st_wt_str] + [""] * (len(columns) - 2))
-            out_data.append(columns)
-            out_data.extend(df.values.tolist())
-            
-            pd.DataFrame(out_data).to_excel(f"data/0402A_{today_str}.xlsx", index=False, header=False)
-            print(f"  ✅ 0402A 成功擷取並自動存檔為 data/0402A_{today_str}.xlsx")
-        else: 
-            print("  ❌ 0402A 失敗: 無法從網頁擷取到持股表格。")
-    except Exception as e: 
-        print(f"  ❌ 0402A 失敗: {e}")
-    finally:
-        try: driver.quit()
-        except: pass
-        try: shutil.rmtree(temp_folder, ignore_errors=True)
-        except: pass
+                columns = target_data[0]
+                df = pd.DataFrame(target_data[1:], columns=columns)
+                df = df[~df.astype(str).apply(lambda x: x.str.contains('顯示更多|收合|合計')).any(axis=1)]
+                
+                out_data = []
+                if size_str: 
+                    out_data.append(["基金淨資產價值", size_str] + [""] * (len(columns) - 2))
+                if nav_str: 
+                    out_data.append(["基金每單位淨值", nav_str] + [""] * (len(columns) - 2))
+                if st_wt_str: 
+                    out_data.append(["股票", st_wt_str] + [""] * (len(columns) - 2))
+                out_data.append(columns)
+                out_data.extend(df.values.tolist())
+                
+                pd.DataFrame(out_data).to_excel(f"data/{code}_{today_str}.xlsx", index=False, header=False)
+                print(f"  ✅ {code} 成功擷取並自動存檔為 data/{code}_{today_str}.xlsx")
+            else: 
+                print(f"  ❌ {code} 失敗: 無法從網頁擷取到持股表格。")
+        except Exception as e: 
+            print(f"  ❌ {code} 失敗: {e}")
+        finally:
+            try: driver.quit()
+            except: pass
+            try: shutil.rmtree(temp_folder, ignore_errors=True)
+            except: pass
 
     # 3. 富邦 00405A
     print("🌐 抓取 00405A...")
