@@ -1,8 +1,12 @@
-name: 🤖 每日手動更新 ETF 報表
+name: 🤖 ETF 自動與手動更新排程
 
-# 🌟 終極閹割：砍掉 push 與 schedule，只有手動點網頁按鈕才會執行！
 on:
-  workflow_dispatch: # 唯一的觸發條件
+  # 1. 🕒 雲端定時排程：每週一到週五，台灣時間晚上 8:00 (UTC 12:00) 自動跑
+  schedule:
+    - cron: '0 12 * * 1-5'
+
+  # 2. 📱 手動觸發開關：隨時可以在 GitHub 網頁 / 手機 App 點按鈕執行
+  workflow_dispatch:
 
 permissions:
   contents: write
@@ -27,15 +31,17 @@ jobs:
           python -m pip install --upgrade pip
           pip install pandas openpyxl requests selenium webdriver-manager lxml
 
-      - name: 4. 🤖 執行自動爬蟲抓取最新檔案
+      - name: 4. 🤖 執行自動爬蟲抓取最新檔案 (內建開市雙保險防護)
         run: python etf_downloader.py
 
       - name: 5. 🧮 執行自動清洗與產出報表
-        run: python script/generate.py
+        run: |
+          rm -rf data/.cache
+          python script/generate.py
 
       - name: 6. 💾 將新檔案與報表存檔並推回 GitHub
         run: |
           git config --local user.email "github-actions[bot]@users.noreply.github.com"
           git config --local user.name "github-actions[bot]"
           git add .
-          git diff --quiet && git diff --staged --quiet || (git commit -m "🤖 手動更新：同步最新 ETF 資料與優化版報表" && git push)
+          git diff --quiet && git diff --staged --quiet || (git commit -m "🤖 自動排程：同步最新 ETF 資料與優化版報表" && git push)
