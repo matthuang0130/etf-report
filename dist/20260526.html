@@ -56,13 +56,12 @@
         details.chart-details>summary{list-style:none;cursor:pointer;background:#f0f9ff;border:1px dashed #7dd3fc;color:#0284c7;padding:10px 15px;border-radius:8px;font-size:15px;font-weight:bold;} 
         details.chart-details>summary::-webkit-details-marker{display:none;}
         
-        /* 🔥 修正：大盤看板 UI 緊湊化與斑馬紋設計 */
         .macro-dashboard table { border-collapse: collapse; width: 100%; min-width: 100%; }
         .macro-dashboard th, .macro-dashboard td { border-bottom: 1px solid #e2e8f0; }
         .macro-row { transition: background-color 0.2s ease; background-color: #fff; }
-        .macro-row:nth-child(even) { background-color: #f8fafc; } /* 斑馬紋底色 */
-        .macro-row:nth-child(even) .freeze-col { background-color: #f8fafc; } /* 斑馬紋的凍結欄底色 */
-        .macro-row:hover, .macro-row:hover .freeze-col { background-color: #f1f5f9; } /* 滑鼠移過的顏色 */
+        .macro-row:nth-child(even) { background-color: #f8fafc; }
+        .macro-row:nth-child(even) .freeze-col { background-color: #f8fafc; }
+        .macro-row:hover, .macro-row:hover .freeze-col { background-color: #f1f5f9; }
         
         .freeze-col { position: sticky; left: 0; z-index: 2; border-right: 1px solid #e2e8f0; background-color: #fff; transition: background-color 0.2s ease; }
         .macro-dashboard thead th { position: sticky; top: 0; z-index: 1; background-color: #f1f5f9; border-bottom: 2px solid #cbd5e1; }

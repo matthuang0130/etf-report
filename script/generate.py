@@ -91,13 +91,12 @@ BASE_HTML = """
         details.chart-details>summary{list-style:none;cursor:pointer;background:#f0f9ff;border:1px dashed #7dd3fc;color:#0284c7;padding:10px 15px;border-radius:8px;font-size:15px;font-weight:bold;} 
         details.chart-details>summary::-webkit-details-marker{display:none;}
         
-        /* 🔥 修正：大盤看板 UI 緊湊化與斑馬紋設計 */
         .macro-dashboard table { border-collapse: collapse; width: 100%; min-width: 100%; }
         .macro-dashboard th, .macro-dashboard td { border-bottom: 1px solid #e2e8f0; }
         .macro-row { transition: background-color 0.2s ease; background-color: #fff; }
-        .macro-row:nth-child(even) { background-color: #f8fafc; } /* 斑馬紋底色 */
-        .macro-row:nth-child(even) .freeze-col { background-color: #f8fafc; } /* 斑馬紋的凍結欄底色 */
-        .macro-row:hover, .macro-row:hover .freeze-col { background-color: #f1f5f9; } /* 滑鼠移過的顏色 */
+        .macro-row:nth-child(even) { background-color: #f8fafc; }
+        .macro-row:nth-child(even) .freeze-col { background-color: #f8fafc; }
+        .macro-row:hover, .macro-row:hover .freeze-col { background-color: #f1f5f9; }
         
         .freeze-col { position: sticky; left: 0; z-index: 2; border-right: 1px solid #e2e8f0; background-color: #fff; transition: background-color 0.2s ease; }
         .macro-dashboard thead th { position: sticky; top: 0; z-index: 1; background-color: #f1f5f9; border-bottom: 2px solid #cbd5e1; }
@@ -310,6 +309,9 @@ def _smart_read_and_clean_raw(filepaths):
 
     if all_clean_data:
         combined = pd.concat(all_clean_data, ignore_index=True)
+        # 🧼 強制清洗股票代號與名稱：轉大寫、去空白、消除浮點 .0 尾綴
+        combined['Code'] = combined['Code'].astype(str).str.replace(r'\.0$', '', regex=True).str.strip().str.upper()
+        combined['Name'] = combined['Name'].astype(str).str.strip()
         return combined.groupby(['Code', 'Name'], as_index=False).agg({'Qty': 'sum', 'Weight': 'sum'}), fund_size, nav, st_wt_raw, ca_wt_raw
     return None, fund_size, nav, st_wt_raw, ca_wt_raw
 
@@ -330,7 +332,8 @@ def generate():
         if date_match and etf_match:
             date_str = date_match.group(1)
             raw_code = etf_match.group(1).upper()
-            etf_code = "00" + raw_code.lstrip('0') if len(raw_code.lstrip('0')) <= 4 else raw_code 
+            core_code = raw_code.lstrip('0')
+            etf_code = f"00{core_code}" if len(core_code) <= 4 else raw_code
             etf_history[etf_code][date_str].append(f)
             all_dates.add(date_str)
 
@@ -351,7 +354,7 @@ def generate():
                 merged['Name'] = merged['Name_T'].fillna(merged['Name_Y']).fillna('')
                 for _, r in merged[merged['Diff'] != 0].iterrows():
                     code_clean = str(r['Code']).replace('.0', '').strip().split()[0]
-                    if '元' in code_clean or '現金' in code_clean or code_clean == 'nan': continue
+                    if '元' in code_clean or '現金' in code_clean or code_clean == 'NAN': continue
                     daily_diff_data[d_curr][code_clean][etf_code] = {'diff': int(r['Diff']), 'name': str(r['Name'])}
 
     for target_date in sorted_dates:
@@ -425,7 +428,7 @@ def generate():
             if res_today[0] is None: continue
 
             df_today, size_today, nav_today, st_wt_raw, ca_wt_raw = res_today
-            valid_holdings = df_today[~df_today['Code'].astype(str).str.contains('元|現金|nan|小計|合計|總計', case=False, na=False)]
+            valid_holdings = df_today[~df_today['Code'].astype(str).str.contains('元|現金|NAN|小計|合計|總計', case=False, na=False)]
             st_wt = st_wt_raw if st_wt_raw is not None else valid_holdings['Weight'].sum()
             
             trend_cache[etf_code][actual_date] = {'st': st_wt, 'nav': nav_today}
@@ -449,7 +452,7 @@ def generate():
                     res_c = smart_read_and_clean(dates_files[cd])
                     if res_c[0] is not None:
                         df_c, sz_c, nav_c, st_raw_c, ca_raw_c = res_c
-                        vh_c = df_c[~df_c['Code'].astype(str).str.contains('元|現金|nan|小計|合計|總計', case=False, na=False)]
+                        vh_c = df_c[~df_c['Code'].astype(str).str.contains('元|現金|NAN|小計|合計|總計', case=False, na=False)]
                         trend_cache[etf_code][cd] = {'st': st_raw_c if st_raw_c is not None else vh_c['Weight'].sum(), 'nav': nav_c}
                     else: trend_cache[etf_code][cd] = {'st': 0, 'nav': None}
                         
@@ -500,7 +503,6 @@ def generate():
             
             nav_disp = f"{data['nav_today']:.2f}" if data['nav_today'] else "-"
             
-            # 🔥 調整了欄位寬度，讓內容更凝聚
             macro_rows_html += f'''
             <tr class="macro-row" style="height: 52px; font-size: 15px; white-space: nowrap;">
                 <td class="freeze-col" style="padding: 10px 15px; text-align: left;">
@@ -576,7 +578,7 @@ def generate():
                     abs_qty = abs(diff_val)
                     qty_str = f"+{abs_qty:,}" if is_buy else f"-{abs_qty:,}"
                     base_code = str(row['Code']).replace('.0', '').strip().split()[0]
-                    if '元' in base_code or '現金' in base_code or base_code == 'nan': continue
+                    if '元' in base_code or '現金' in base_code or base_code == 'NAN': continue
                     is_new = is_buy and (row['Qty_Y'] == 0)
                     name_display = f"<span style='color: #ef4444; font-weight: bold; font-size: 13px; margin-right: 4px;'>[新]</span>{STOCK_NAME_MAP.get(base_code, str(row['Name']))}" if is_new else STOCK_NAME_MAP.get(base_code, str(row['Name']))
                     item_html = f'<tr style="border-bottom: 1px solid #f1f5f9; height: 50px;"><td style="padding: 10px 8px; font-family: monospace; color: #475569; font-size: 15px; font-weight: 600; white-space: nowrap;">{base_code}</td><td style="padding: 10px 8px; text-align: left; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; font-weight: 700; color: #1e293b; font-size: 16px;">{name_display}</td><td style="padding: 10px 8px; text-align: right; font-weight: 900; font-size: 16px; white-space: nowrap;" class="{"val-buy" if is_buy else "val-sell"}">{qty_str}</td></tr>'
@@ -617,7 +619,6 @@ def generate():
 
         macro_dashboard_html = ""
         if macro_rows_html:
-            # 🔥 關鍵修改：將 max-width 設為 850px 並居中，徹底消除左右空洞感
             macro_dashboard_html = f'''
             <div class="macro-dashboard" style="background: #ffffff; border: 1px solid #cbd5e1; border-radius: 12px; padding: 15px; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05); margin-bottom: 25px; max-width: 850px; margin-left: auto; margin-right: auto;">
                 <h2 style="margin-top: 0; color: #0f172a; font-size: 18px; margin-bottom: 15px; text-align: center;">🏆 ETF 近 10 日強弱勢自動排行</h2>
