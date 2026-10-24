@@ -1,0 +1,62 @@
+name: 🗑️ 刪除特定日期更新並回退報表
+
+on:
+  workflow_dispatch:
+    inputs:
+      target_date:
+        description: '請輸入要刪除的日期 (格式: YYYYMMDD，例如 20261023)'
+        required: true
+        type: string
+
+permissions:
+  contents: write
+
+jobs:
+  rollback:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: 1. 檢出程式碼庫
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: 2. 設定 Python 環境
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.10'
+
+      - name: 3. 安裝報表生成必備套件
+        run: |
+          python -m pip install --upgrade pip
+          pip install pandas openpyxl lxml
+
+      - name: 4. 執行刪除指定日期資料 (${{ inputs.target_date }})
+        run: |
+          TARGET="${{ inputs.target_date }}"
+          echo "正在刪除指定日期：$TARGET 的所有資料與報表..."
+          
+          # 刪除 data/ 目錄下該日期的所有 Excel/CSV 檔案
+          rm -f data/*${TARGET}*
+          
+          # 刪除 dist/ 目錄下該日期的 HTML 報表
+          rm -f dist/${TARGET}.html
+          
+          # 徹底清除報表計算快取
+          rm -rf data/.cache
+
+      - name: 5. 重新生成最新歷史報表與 index.html
+        run: python script/generate.py
+
+      - name: 6. 提交變更並推回 GitHub
+        run: |
+          git config --local user.email "github-actions[bot]@users.noreply.github.com"
+          git config --local user.name "github-actions[bot]"
+          git add data/ dist/
+          
+          if git diff --staged --quiet; then
+            echo "沒有任何變更需要提交。"
+          else
+            git commit -m "🗑️ 系統回退：刪除 ${{ inputs.target_date }} 資料並重建報表"
+            git push origin main
+          fi
