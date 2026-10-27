@@ -54,27 +54,39 @@ def get_driver(download_path):
     driver.execute_cdp_cmd('Page.setDownloadBehavior', {'behavior': 'allow', 'downloadPath': abs_download_path})
     return driver
 
-# 🛡️ 雙保險開市驗證模組
+# 🛡️ 雙保險開市驗證模組 (強化版：透過實際交易日防禦颱風假與休市)
 def is_trading_day(date_str):
-    # 第一道鎖：週末直接攔截
+    # 第一道防線：週末例假日直接攔截
     if datetime.now().weekday() >= 5:
-        print(f"🛑 今日為週末例假日，直接判定為非交易日。")
+        print(f"🛑 今日為週末例假日，直接中斷執行。")
         return False
 
-    # 第二道鎖：平日查驗證交所（防國定假日、颱風假）
-    print(f"🔍 正在連線台灣證交所，確認 {date_str} 開市狀態...")
+    print(f"🔍 正在連線台灣證交所，驗證 {date_str} 是否為有效交易日...")
     try:
-        url = f"https://www.twse.com.tw/exchangeReport/MI_INDEX?response=json&date={date_str}&type=IND"
+        # 查驗大盤加權指數真實成交紀錄
+        url = f"https://www.twse.com.tw/exchangeReport/FMTQIK?response=json&date={date_str}"
         headers = {'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36'}
-        r = requests.get(url, headers=headers, timeout=10)
-        data = r.json()
+        r = requests.get(url, headers=headers, timeout=15)
+        res = r.json()
         
-        # 必須 stat 是 OK 且裡面確實有抓到行情數據 (data9 或 tables)
-        if data.get("stat") == "OK" and (data.get("data9") or data.get("tables")):
-            return True
-        return False
+        if res.get("stat") != "OK" or not res.get("data"):
+            print(f"🛑 證交所查無交易行情（颱風假/休市），系統自動取消更新！")
+            return False
+            
+        # 取出該月份證交所紀錄的「最後一筆實際交易日」
+        last_row = res["data"][-1]
+        raw_tw_date = last_row[0].strip() # 格式例如: 115/10/22
+        parts = raw_tw_date.split('/')
+        last_trading_date = f"{int(parts[0]) + 1911}{parts[1].zfill(2)}{parts[2].zfill(2)}"
+        
+        if last_trading_date != date_str:
+            print(f"🛑 今日 ({date_str}) 證交所無開市交易（最新開市日為 {last_trading_date}，逢颱風假或休市），系統自動取消更新！")
+            return False
+            
+        print(f"✅ 證交所確認開市，今日為正常交易日 ({date_str})。")
+        return True
     except Exception as e:
-        print(f"⚠️ 證交所連線異常，啟動保護機制，預設視為非交易日: {e}")
+        print(f"⚠️ 證交所驗證連線失敗，啟動保護機制，視為非交易日: {e}")
         return False
 
 def run_download():
@@ -112,7 +124,7 @@ def run_download():
         except Exception as e: 
             print(f"  ❌ {code} 失敗: {e}")
 
-    # 2. 安聯 (0402A 與 新增 00412A)
+    # 2. 安聯 (0402A 與 00412A)
     allianz_etfs = [
         ("0402A", "https://etf.allianzgi.com.tw/etf-info/E0003?tab=4"),
         ("00412A", "https://etf.allianzgi.com.tw/etf-info/E0004?tab=4")
@@ -241,8 +253,8 @@ def run_download():
             try: shutil.rmtree(temp_folder, ignore_errors=True)
             except: pass
 
-    # 7. 群益 (00992A, 00997A)
-    qunyi_etfs = [("00992A", "500"), ("00997A", "502")]
+    # 7. 群益 (00992A, 00997A, 新增 00415A)
+    qunyi_etfs = [("00992A", "500"), ("00997A", "502"), ("00415A", "504")]
     for code, pid in qunyi_etfs:
         print(f"🌐 抓取 {code} (群益)...")
         temp_folder = f"temp_{code.lower()}"

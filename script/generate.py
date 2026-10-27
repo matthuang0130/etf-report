@@ -18,7 +18,8 @@ ETF_MAPPING = {
     "00406A": "中信台灣收益成長",
     "00997A": "群益美國增長",
     "00409A": "復華全球50",
-    "00412A": "安聯亞洲半導體"
+    "00412A": "安聯亞洲半導體",
+    "00415A": "群益主動核心50"
 }
 
 STOCK_NAME_MAP = {
@@ -309,7 +310,7 @@ def _smart_read_and_clean_raw(filepaths):
 
     if all_clean_data:
         combined = pd.concat(all_clean_data, ignore_index=True)
-        # 🧼 強制清洗股票代號與名稱：轉大寫、去空白、消除浮點 .0 尾綴
+        # 🧼 強制清洗股票代號與名稱
         combined['Code'] = combined['Code'].astype(str).str.replace(r'\.0$', '', regex=True).str.strip().str.upper()
         combined['Name'] = combined['Name'].astype(str).str.strip()
         return combined.groupby(['Code', 'Name'], as_index=False).agg({'Qty': 'sum', 'Weight': 'sum'}), fund_size, nav, st_wt_raw, ca_wt_raw
