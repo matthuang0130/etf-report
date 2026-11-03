@@ -240,7 +240,8 @@ def _smart_read_and_clean_raw(filepaths):
                     if not nav:
                         if any(k in row_str.lower() for k in ['單位淨值', '每單位淨值', '淨值', 'nav', '淨資產', '資產淨值']): look_for_nav = True
                         if look_for_nav:
-                            vals = re.findall(r'\d+\.\d+', row_str)
+                            # 🎯 關鍵修改：放寬正規表示式，允許抓取純整數 (例如 15) 或帶小數 (例如 15.00)
+                            vals = re.findall(r'\d+\.?\d*', row_str)
                             for v in vals:
                                 try:
                                     val = float(v)
